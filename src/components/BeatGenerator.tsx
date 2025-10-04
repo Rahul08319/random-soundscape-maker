@@ -16,6 +16,7 @@ const STEPS = 16;
 
 export const BeatGenerator = () => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [bpm, setBpm] = useState(120);
   const [currentStep, setCurrentStep] = useState(0);
   const [pattern, setPattern] = useState<boolean[][]>(
@@ -24,6 +25,8 @@ export const BeatGenerator = () => {
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const intervalRef = useRef<number | null>(null);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -136,8 +139,122 @@ export const BeatGenerator = () => {
     toast.info("Pattern cleared");
   };
 
-  const exportPattern = () => {
-    toast.success("Export feature coming soon!");
+  const exportPattern = async () => {
+    if (!audioContextRef.current) return;
+    
+    const hasBeats = pattern.some(track => track.some(beat => beat));
+    if (!hasBeats) {
+      toast.error("Add some beats to your pattern first!");
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      toast.info("Recording your beat... This will take a few seconds");
+
+      // Create a destination for recording
+      const dest = audioContextRef.current.createMediaStreamDestination();
+      const mediaRecorder = new MediaRecorder(dest.stream);
+      audioChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        audioChunksRef.current.push(event.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: "audio/wav" });
+        const url = URL.createObjectURL(audioBlob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `beat-${bpm}bpm-${Date.now()}.wav`;
+        a.click();
+        URL.revokeObjectURL(url);
+        setIsExporting(false);
+        toast.success("Beat exported successfully!");
+      };
+
+      mediaRecorder.start();
+
+      // Play through the pattern twice for the recording
+      let recordStep = 0;
+      const totalSteps = STEPS * 2; // Record 2 loops
+      const stepDuration = (60 / bpm / 4) * 1000;
+
+      const recordInterval = setInterval(() => {
+        const currentBeat = recordStep % STEPS;
+        
+        pattern.forEach((track, instrumentIndex) => {
+          if (track[currentBeat]) {
+            // Create oscillators that connect to the recording destination
+            const ctx = audioContextRef.current!;
+            const now = ctx.currentTime;
+
+            switch (instrumentIndex) {
+              case 0: // Kick
+                const kickOsc = ctx.createOscillator();
+                const kickGain = ctx.createGain();
+                kickOsc.frequency.setValueAtTime(150, now);
+                kickOsc.frequency.exponentialRampToValueAtTime(0.01, now + 0.5);
+                kickGain.gain.setValueAtTime(1, now);
+                kickGain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                kickOsc.connect(kickGain).connect(dest);
+                kickOsc.start(now);
+                kickOsc.stop(now + 0.5);
+                break;
+
+              case 1: // Snare
+                const snareOsc = ctx.createOscillator();
+                const snareGain = ctx.createGain();
+                snareOsc.type = "triangle";
+                snareOsc.frequency.setValueAtTime(200, now);
+                snareGain.gain.setValueAtTime(0.3, now);
+                snareGain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+                snareOsc.connect(snareGain).connect(dest);
+                snareOsc.start(now);
+                snareOsc.stop(now + 0.2);
+                break;
+
+              case 2: // Hi-Hat
+                const hihatOsc = ctx.createOscillator();
+                const hihatGain = ctx.createGain();
+                hihatOsc.type = "square";
+                hihatOsc.frequency.setValueAtTime(8000, now);
+                hihatGain.gain.setValueAtTime(0.1, now);
+                hihatGain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                hihatOsc.connect(hihatGain).connect(dest);
+                hihatOsc.start(now);
+                hihatOsc.stop(now + 0.1);
+                break;
+
+              case 3: // Clap
+                const clapOsc = ctx.createOscillator();
+                const clapGain = ctx.createGain();
+                clapOsc.type = "sawtooth";
+                clapOsc.frequency.setValueAtTime(1000, now);
+                clapGain.gain.setValueAtTime(0.2, now);
+                clapGain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                clapOsc.connect(clapGain).connect(dest);
+                clapOsc.start(now);
+                clapOsc.stop(now + 0.15);
+                break;
+            }
+          }
+        });
+
+        recordStep++;
+        if (recordStep >= totalSteps) {
+          clearInterval(recordInterval);
+          setTimeout(() => {
+            mediaRecorder.stop();
+          }, 500);
+        }
+      }, stepDuration);
+
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export beat. Please try again.");
+      setIsExporting(false);
+    }
   };
 
   return (
@@ -200,11 +317,12 @@ export const BeatGenerator = () => {
                 </Button>
                 <Button
                   onClick={exportPattern}
+                  disabled={isExporting}
                   variant="outline"
-                  className="border-accent text-accent hover:bg-accent/10"
+                  className="border-accent text-accent hover:bg-accent/10 disabled:opacity-50"
                 >
                   <Download className="mr-2" />
-                  Export
+                  {isExporting ? "Exporting..." : "Export"}
                 </Button>
               </div>
             </div>
