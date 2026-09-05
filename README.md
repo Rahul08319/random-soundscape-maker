@@ -60,6 +60,12 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
+## YouTube Playables integration
+
+The SDK loads before the app bundle. The editor reports its first frame and interactive readiness, honors YouTube audio and pause/resume events, reads the YouTube locale, and saves BPM/pattern data to the Playables cloud save (with `localStorage` fallback locally).
+
+Ads and rewarded-ad APIs are intentionally excluded. `sendScore` and `openYTContent` do not fit this editor because it has no meaningful score or configured YouTube content ID.
+
 ## How can I deploy this project?
 
 Simply open [Lovable](https://lovable.dev/projects/4939c3a5-5db9-4246-830e-20f44f9f7990) and click on Share -> Publish.

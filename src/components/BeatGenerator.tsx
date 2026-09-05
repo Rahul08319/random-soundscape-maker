@@ -4,6 +4,13 @@ import { Slider } from "@/components/ui/slider";
 import { Card } from "@/components/ui/card";
 import { Play, Pause, Square, Download, Shuffle } from "lucide-react";
 import { toast } from "sonner";
+import {
+  initializePlayables,
+  loadPlayableData,
+  markPlayableReady,
+  reportPlayableError,
+  savePlayableData,
+} from "@/lib/youtubePlayables";
 
 const INSTRUMENTS = [
   { name: "Kick", color: "hsl(280 85% 65%)" },
@@ -13,20 +20,48 @@ const INSTRUMENTS = [
 ];
 
 const STEPS = 16;
+const emptyPattern = () => INSTRUMENTS.map(() => Array(STEPS).fill(false));
+
+type SavedBeat = { bpm?: number; pattern?: boolean[][] };
+
+function parseSavedBeat(rawData: string): SavedBeat | null {
+  if (!rawData) return null;
+  try {
+    const parsed = JSON.parse(rawData) as SavedBeat;
+    const hasValidPattern = Array.isArray(parsed.pattern) && parsed.pattern.length === INSTRUMENTS.length &&
+      parsed.pattern.every((track) => Array.isArray(track) && track.length === STEPS && track.every((beat) => typeof beat === "boolean"));
+    const hasValidBpm = typeof parsed.bpm === "number" && parsed.bpm >= 60 && parsed.bpm <= 200;
+    return hasValidPattern || hasValidBpm ? parsed : null;
+  } catch {
+    reportPlayableError();
+    return null;
+  }
+}
 
 export const BeatGenerator = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isPlayableReady, setIsPlayableReady] = useState(false);
+  const [isSystemPaused, setIsSystemPaused] = useState(false);
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [bpm, setBpm] = useState(120);
   const [currentStep, setCurrentStep] = useState(0);
   const [pattern, setPattern] = useState<boolean[][]>(
-    INSTRUMENTS.map(() => Array(STEPS).fill(false))
+    emptyPattern()
   );
 
   const audioContextRef = useRef<AudioContext | null>(null);
   const intervalRef = useRef<number | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const saveCurrentBeatRef = useRef<() => Promise<void>>(async () => undefined);
+
+  const stopPlayback = () => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    intervalRef.current = null;
+    setIsPlaying(false);
+    setCurrentStep(0);
+  };
 
   useEffect(() => {
     audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -36,8 +71,49 @@ export const BeatGenerator = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (!isAudioEnabled) void audioContextRef.current?.suspend();
+  }, [isAudioEnabled]);
+
+  useEffect(() => {
+    let isMounted = true;
+    let cleanup = () => undefined;
+
+    const startPlayables = async () => {
+      cleanup = await initializePlayables({
+        onAudioEnabledChange: setIsAudioEnabled,
+        onPause: () => {
+          setIsSystemPaused(true);
+          stopPlayback();
+          void saveCurrentBeatRef.current();
+        },
+        onResume: () => setIsSystemPaused(false),
+        onLanguage: (language) => { document.documentElement.lang = language; },
+      });
+
+      const savedBeat = parseSavedBeat(await loadPlayableData());
+      if (isMounted && savedBeat) {
+        if (typeof savedBeat.bpm === "number") setBpm(savedBeat.bpm);
+        if (savedBeat.pattern) setPattern(savedBeat.pattern);
+      }
+      if (isMounted) {
+        setIsPlayableReady(true);
+        markPlayableReady();
+      }
+    };
+
+    void startPlayables();
+    return () => { isMounted = false; cleanup(); };
+  }, []);
+
+  saveCurrentBeatRef.current = () => savePlayableData(JSON.stringify({ bpm, pattern }));
+
+  useEffect(() => {
+    if (isPlayableReady) void saveCurrentBeatRef.current();
+  }, [bpm, pattern, isPlayableReady]);
+
   const playSound = (instrumentIndex: number) => {
-    if (!audioContextRef.current) return;
+    if (!audioContextRef.current || !isAudioEnabled) return;
 
     const ctx = audioContextRef.current;
     const now = ctx.currentTime;
@@ -94,11 +170,11 @@ export const BeatGenerator = () => {
   };
 
   const togglePlay = () => {
+    if (!isPlayableReady || isSystemPaused) return;
     if (isPlaying) {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-      setIsPlaying(false);
-      setCurrentStep(0);
+      stopPlayback();
     } else {
+      void audioContextRef.current?.resume();
       setIsPlaying(true);
       const stepDuration = (60 / bpm / 4) * 1000;
 
@@ -119,12 +195,14 @@ export const BeatGenerator = () => {
   };
 
   const toggleBeat = (instrumentIndex: number, stepIndex: number) => {
+    if (!isPlayableReady || isSystemPaused) return;
     const newPattern = [...pattern];
     newPattern[instrumentIndex][stepIndex] = !newPattern[instrumentIndex][stepIndex];
     setPattern(newPattern);
   };
 
   const randomizePattern = () => {
+    if (!isPlayableReady || isSystemPaused) return;
     const newPattern = INSTRUMENTS.map(() =>
       Array(STEPS)
         .fill(false)
@@ -135,12 +213,13 @@ export const BeatGenerator = () => {
   };
 
   const clearPattern = () => {
-    setPattern(INSTRUMENTS.map(() => Array(STEPS).fill(false)));
+    if (!isPlayableReady || isSystemPaused) return;
+    setPattern(emptyPattern());
     toast.info("Pattern cleared");
   };
 
   const exportPattern = async () => {
-    if (!audioContextRef.current) return;
+    if (!audioContextRef.current || !isPlayableReady || isSystemPaused) return;
     
     const hasBeats = pattern.some(track => track.some(beat => beat));
     if (!hasBeats) {
@@ -258,11 +337,11 @@ export const BeatGenerator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
+    <div className="min-h-screen bg-background p-3 sm:p-4 md:p-8">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold sm:text-5xl bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
             Beat Generator
           </h1>
           <p className="text-muted-foreground text-lg">
@@ -271,11 +350,12 @@ export const BeatGenerator = () => {
         </div>
 
         {/* Controls */}
-        <Card className="p-6 bg-card border-border">
+        <Card className="p-4 sm:p-6 bg-card border-border">
           <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
             <div className="flex gap-3">
               <Button
                 onClick={togglePlay}
+                disabled={!isPlayableReady || isSystemPaused}
                 size="lg"
                 className="bg-primary hover:bg-primary/90 shadow-[0_0_20px_hsl(var(--primary)/0.5)] transition-all"
               >
@@ -284,6 +364,7 @@ export const BeatGenerator = () => {
               </Button>
               <Button
                 onClick={clearPattern}
+                disabled={!isPlayableReady || isSystemPaused}
                 variant="outline"
                 size="lg"
                 className="border-border hover:bg-muted"
@@ -299,6 +380,7 @@ export const BeatGenerator = () => {
                 <Slider
                   value={[bpm]}
                   onValueChange={(value) => setBpm(value[0])}
+                  disabled={!isPlayableReady || isSystemPaused}
                   min={60}
                   max={200}
                   step={1}
@@ -309,6 +391,7 @@ export const BeatGenerator = () => {
               <div className="flex gap-3">
                 <Button
                   onClick={randomizePattern}
+                  disabled={!isPlayableReady || isSystemPaused}
                   variant="outline"
                   className="border-secondary text-secondary hover:bg-secondary/10"
                 >
@@ -317,7 +400,7 @@ export const BeatGenerator = () => {
                 </Button>
                 <Button
                   onClick={exportPattern}
-                  disabled={isExporting}
+                  disabled={isExporting || !isPlayableReady || isSystemPaused}
                   variant="outline"
                   className="border-accent text-accent hover:bg-accent/10 disabled:opacity-50"
                 >
@@ -330,23 +413,24 @@ export const BeatGenerator = () => {
         </Card>
 
         {/* Beat Grid */}
-        <Card className="p-6 bg-card border-border overflow-x-auto">
+        <Card className="p-3 sm:p-6 bg-card border-border">
           <div className="space-y-4">
             {INSTRUMENTS.map((instrument, instrumentIndex) => (
-              <div key={instrument.name} className="flex items-center gap-4">
+              <div key={instrument.name} className="space-y-2 sm:flex sm:items-center sm:gap-4 sm:space-y-0">
                 <div
-                  className="w-20 text-sm font-medium text-right"
+                  className="text-sm font-medium sm:w-20 sm:text-right"
                   style={{ color: instrument.color }}
                 >
                   {instrument.name}
                 </div>
-                <div className="flex gap-1 flex-1">
+                <div className="grid w-full grid-cols-4 gap-2 sm:grid-cols-8 md:[grid-template-columns:repeat(16,minmax(0,1fr))]">
                   {Array.from({ length: STEPS }).map((_, stepIndex) => (
                     <button
                       key={stepIndex}
                       onClick={() => toggleBeat(instrumentIndex, stepIndex)}
+                      disabled={!isPlayableReady || isSystemPaused}
                       className={`
-                        flex-1 aspect-square min-w-[40px] rounded-md transition-all duration-150
+                        aspect-square min-h-12 rounded-md transition-all duration-150 sm:min-h-[40px]
                         ${pattern[instrumentIndex][stepIndex]
                           ? "opacity-100 shadow-lg"
                           : "opacity-30 hover:opacity-50"
