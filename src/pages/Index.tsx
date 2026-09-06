@@ -1,7 +1,7 @@
-import { BeatGenerator } from "@/components/BeatGenerator";
+import { BeatStudio } from "@/components/BeatStudio";
 
 const Index = () => {
-  return <BeatGenerator />;
+  return <BeatStudio />;
 };
 
 export default Index;
