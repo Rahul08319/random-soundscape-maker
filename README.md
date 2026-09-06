@@ -1,79 +1,50 @@
-# Welcome to your Lovable project
+# Beat Studio
 
-## Project info
+An expressive, touch-friendly 16-step beat sequencer for making quick loops, saving ideas, and sharing a groove. Built as a compact web experience with YouTube Playables support in mind.
 
-**URL**: https://lovable.dev/projects/4939c3a5-5db9-4246-830e-20f44f9f7990
+## What you can do
 
-## How can I edit this code?
+- Program six colorful tracks: Kick, Snare, Hi-Hat, Clap, Bass, and Shaker.
+- Control tempo, swing, velocity, per-track volume, mute, and solo.
+- Play, clear, and generate a fresh randomized groove.
+- Save named presets, mark favorites, and restore them later.
+- Copy a shareable beat link or export/import your whole session as JSON.
+- Use the keyboard: `Space` play/pause, `←`/`→` select a step, `1`–`6` toggle a track, `F` fullscreen.
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/4939c3a5-5db9-4246-830e-20f44f9f7990) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Run locally
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+git clone https://github.com/Rahul08319/random-soundscape-maker.git
+cd random-soundscape-maker
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Tech
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+React · TypeScript · Vite · Tailwind CSS · shadcn/ui · Web Audio API
 
-**Use GitHub Codespaces**
+## YouTube Playables readiness
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Beat Studio integrates the YouTube Playables web SDK before the app bundle and reports first-frame and interactive readiness. It responds to host audio and pause/resume events, uses the host language, and persists a session through Playables cloud save with a local-storage fallback during local development.
 
-## What technologies are used for this project?
+The project deliberately contains no ads, rewarded ads, or monetization flows. It also has no score or YouTube content deep link because neither applies to a creative music editor.
 
-This project is built with:
+Run the production checks with:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```sh
+npm run lint
+npm run build
+```
 
-## YouTube Playables integration
+GitHub Actions runs those same checks for pushes and pull requests. Final approval still requires uploading a production build to the official [YouTube Playables Test Suite](https://developers.google.com/youtube/gaming/playables/test_suite).
 
-The SDK loads before the app bundle. The editor reports its first frame and interactive readiness, honors YouTube audio and pause/resume events, reads the YouTube locale, and saves BPM/pattern data to the Playables cloud save (with `localStorage` fallback locally).
+## Project structure
 
-Ads and rewarded-ad APIs are intentionally excluded. `sendScore` and `openYTContent` do not fit this editor because it has no meaningful score or configured YouTube content ID.
+```text
+src/components/BeatStudio.tsx  Main sequencer and mixer
+src/lib/youtubePlayables.ts    YouTube Playables lifecycle and save adapter
+.github/workflows/verify.yml   Build and lint checks
+```
 
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/4939c3a5-5db9-4246-830e-20f44f9f7990) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+Made by [Rahul Kumar](https://github.com/Rahul08319).

@@ -8,22 +8,22 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 220 26% 8%;
+    --background: 232 39% 4%;
     --foreground: 210 40% 98%;
 
-    --card: 220 26% 10%;
+    --card: 231 34% 7%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 220 26% 10%;
+    --popover: 231 34% 7%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 280 85% 65%;
+    --primary: 272 92% 66%;
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 190 85% 55%;
+    --secondary: 190 96% 60%;
     --secondary-foreground: 220 26% 8%;
 
-    --muted: 220 20% 18%;
+    --muted: 231 25% 14%;
     --muted-foreground: 215 20% 65%;
 
     --accent: 330 85% 60%;
@@ -32,8 +32,8 @@ All colors MUST be HSL.
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 220 20% 20%;
-    --input: 220 20% 16%;
+    --border: 230 27% 20%;
+    --input: 230 27% 12%;
     --ring: 280 85% 65%;
 
     --radius: 0.75rem;
@@ -64,5 +64,62 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    min-width: 320px;
+    background-image: radial-gradient(circle at 72% -15%, hsl(272 92% 66% / .14), transparent 31rem), radial-gradient(circle at 5% 42%, hsl(190 96% 60% / .08), transparent 25rem);
   }
+}
+
+@layer components {
+  .studio-shell { min-height: 100vh; padding: clamp(1rem, 3vw, 3.5rem); }
+  .studio-frame { max-width: 1400px; margin: 0 auto; border: 1px solid hsl(var(--border)); background: hsl(232 38% 5% / .88); box-shadow: 0 30px 90px hsl(232 80% 1% / .6), inset 0 1px hsl(0 0% 100% / .04); }
+  .studio-header { display: flex; align-items: end; justify-content: space-between; gap: 1rem; padding: clamp(1.25rem, 3vw, 2.25rem); border-bottom: 1px solid hsl(var(--border)); }
+  .studio-kicker, .section-heading p { margin: 0; color: hsl(var(--secondary)); font-size: .66rem; font-weight: 800; letter-spacing: .2em; }
+  .studio-wordmark { margin: .3rem 0 0; color: hsl(var(--foreground)); font-size: clamp(2rem, 5vw, 4.4rem); font-style: italic; font-weight: 900; letter-spacing: -.08em; line-height: .8; }
+  .studio-wordmark span { color: hsl(var(--primary)); text-shadow: 0 0 28px hsl(var(--primary) / .55); }
+  .studio-shortcuts { margin: 0; color: hsl(var(--muted-foreground)); font-size: .7rem; letter-spacing: .06em; text-align: right; }
+  .studio-console { display: grid; grid-template-columns: auto minmax(260px, 1fr) auto; align-items: center; gap: 1rem; padding: 1rem clamp(1.25rem, 3vw, 2.25rem); border-bottom: 1px solid hsl(var(--border)); background: hsl(232 30% 7% / .55); }
+  .studio-play { min-width: 7.5rem; height: 3.1rem; border: 1px solid hsl(var(--primary) / .8) !important; background: hsl(var(--primary)) !important; color: hsl(232 39% 4%) !important; box-shadow: 0 0 25px hsl(var(--primary) / .38); font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+  .studio-play svg { width: 1rem; }
+  .studio-parameters { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.4rem; }
+  .studio-parameters label { display: grid; gap: .5rem; color: hsl(var(--muted-foreground)); font-size: .66rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+  .studio-parameters label b { color: hsl(var(--foreground)); font-size: .9rem; }
+  .studio-actions { display: flex; flex-wrap: wrap; justify-content: end; gap: .15rem; }
+  .studio-actions button, .preset-strip button, .mix-actions button { color: hsl(var(--muted-foreground)); font-size: .68rem; letter-spacing: .04em; }
+  .studio-actions button:hover, .preset-strip button:hover, .mix-actions button:hover { color: hsl(var(--foreground)); background: hsl(var(--muted)); }
+  .studio-actions svg, .preset-strip svg, .mix-actions svg { width: .9rem; height: .9rem; }
+  .preset-strip { display: flex; align-items: center; gap: 1rem; min-height: 4rem; padding: .75rem clamp(1.25rem, 3vw, 2.25rem); border-bottom: 1px solid hsl(var(--border)); }
+  .preset-strip-label { display: flex; gap: .4rem; align-items: center; color: hsl(var(--foreground)); font-size: .68rem; font-weight: 800; letter-spacing: .12em; }
+  .preset-strip-label svg { width: .85rem; color: hsl(45 95% 60%); }
+  .preset-strip-content { display: flex; flex: 1; align-items: center; gap: .45rem; overflow-x: auto; }
+  .preset-strip input { width: 10.5rem; height: 2.1rem; flex: 0 0 auto; border: 1px solid hsl(var(--border)); background: hsl(232 39% 4%); padding: 0 .7rem; color: hsl(var(--foreground)); font-size: .72rem; outline: none; }
+  .preset-strip input:focus { border-color: hsl(var(--primary)); }
+  .preset-chip { display: inline-flex; flex: 0 0 auto; overflow: hidden; border: 1px solid hsl(var(--border)); background: hsl(232 29% 9%); }
+  .preset-chip button { height: 2rem; border-radius: 0; padding: 0 .6rem; }
+  .preset-chip button + button { border-left: 1px solid hsl(var(--border)); padding: 0 .45rem; }
+  .is-favorite { fill: hsl(45 95% 60%); color: hsl(45 95% 60%); }
+  .sequencer-surface, .mixer-surface { padding: clamp(1.25rem, 3vw, 2.25rem); }
+  .section-heading { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+  .section-heading h2 { margin: .4rem 0 0; color: hsl(var(--foreground)); font-size: clamp(1.1rem, 2vw, 1.45rem); font-weight: 700; letter-spacing: -.03em; }
+  .section-heading > svg { color: hsl(var(--primary)); }
+  .step-numbers { display: grid; grid-template-columns: 7rem repeat(16, minmax(0, 1fr)); gap: .38rem; margin-bottom: .65rem; color: hsl(var(--muted-foreground)); font-size: .58rem; font-weight: 800; letter-spacing: .06em; text-align: center; }
+  .step-numbers span:first-child { grid-column: 2; }
+  .track-lane { display: grid; grid-template-columns: 7rem minmax(0, 1fr); align-items: center; gap: 1rem; min-height: 4.35rem; border-top: 1px solid hsl(var(--border) / .65); }
+  .track-label { color: var(--track); font-size: .82rem; font-weight: 800; letter-spacing: .02em; }
+  .track-label small { display: block; margin-top: .2rem; color: hsl(var(--muted-foreground)); font-size: .55rem; font-weight: 700; letter-spacing: .13em; }
+  .step-grid { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: .38rem; }
+  .step-cell { aspect-ratio: 1; min-height: 2.1rem; border: 1px solid color-mix(in srgb, var(--track) 25%, transparent); background: color-mix(in srgb, var(--track) 8%, transparent); transition: transform .15s ease, background .15s ease, box-shadow .15s ease; }
+  .step-cell:hover:not(:disabled) { background: color-mix(in srgb, var(--track) 27%, transparent); transform: translateY(-2px); }
+  .step-cell.is-active { background: var(--track); border-color: var(--track); box-shadow: 0 0 15px color-mix(in srgb, var(--track) 55%, transparent), inset 0 1px hsl(0 0% 100% / .45); }
+  .step-cell.is-current { outline: 2px solid hsl(0 0% 100%); outline-offset: 2px; }
+  .step-cell.is-selected { box-shadow: inset 0 0 0 2px hsl(var(--background)); }
+  .mixer-surface { border-top: 1px solid hsl(var(--border)); background: hsl(232 31% 6%); }
+  .mixer-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border: 1px solid hsl(var(--border)); }
+  .mix-channel { min-height: 9rem; padding: 1rem; border-right: 1px solid hsl(var(--border)); background: linear-gradient(180deg, color-mix(in srgb, var(--track) 9%, transparent), transparent 42%); }
+  .mix-channel:last-child { border-right: 0; }
+  .mix-channel > div:first-child { display: flex; justify-content: space-between; gap: .5rem; margin-bottom: 1.3rem; color: var(--track); font-size: .75rem; font-weight: 800; }
+  .mix-channel b { color: hsl(var(--muted-foreground)); font-size: .6rem; }
+  .mix-actions { display: flex; gap: .2rem; margin-top: 1rem; }
+  .mix-actions .is-solo { color: hsl(var(--foreground)); background: color-mix(in srgb, var(--track) 25%, transparent); }
+  @media (max-width: 900px) { .studio-console { grid-template-columns: auto 1fr; } .studio-actions { grid-column: 1 / -1; justify-content: start; } .mixer-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .mix-channel:nth-child(3) { border-right: 0; } .mix-channel:nth-child(-n+3) { border-bottom: 1px solid hsl(var(--border)); } }
+  @media (max-width: 640px) { .studio-shell { padding: .55rem; } .studio-header { align-items: start; flex-direction: column; } .studio-shortcuts { text-align: left; } .studio-console { grid-template-columns: 1fr; } .studio-parameters { gap: .9rem; } .studio-actions { grid-column: auto; } .preset-strip { align-items: flex-start; flex-direction: column; } .preset-strip-content { width: 100%; } .step-numbers { display: none; } .track-lane { grid-template-columns: 1fr; gap: .55rem; padding: .85rem 0; } .track-label { display: flex; justify-content: space-between; } .track-label small { margin: 0; } .step-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); } .mixer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .mix-channel:nth-child(3) { border-right: 1px solid hsl(var(--border)); } .mix-channel:nth-child(2), .mix-channel:nth-child(4) { border-right: 0; } .mix-channel:nth-child(-n+4) { border-bottom: 1px solid hsl(var(--border)); } }
 }
