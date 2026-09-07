@@ -21,6 +21,15 @@ const createTracks = (): Track[] => [
   { name: "Shaker", color: "hsl(15 90% 65%)", volume: 0.45, muted: false, solo: false },
 ];
 const emptyPattern = (count = createTracks().length) => Array.from({ length: count }, () => Array(STEPS).fill(false));
+const starterPattern = () => {
+  const pattern = emptyPattern();
+  [0, 4, 8, 12].forEach((step) => { pattern[0][step] = true; pattern[4][step] = true; });
+  [4, 12].forEach((step) => { pattern[1][step] = true; });
+  [0, 2, 4, 6, 8, 10, 12, 14].forEach((step) => { pattern[2][step] = true; });
+  [6, 14].forEach((step) => { pattern[3][step] = true; });
+  [3, 7, 11, 15].forEach((step) => { pattern[5][step] = true; });
+  return pattern;
+};
 const cloneBeat = (beat: BeatState): BeatState => ({ ...beat, pattern: beat.pattern.map((row) => [...row]), tracks: beat.tracks.map((track) => ({ ...track })) });
 
 function validBeat(value: unknown): BeatState | null {
@@ -48,7 +57,7 @@ function decodeShare(): BeatState | null {
 
 export const BeatStudio = () => {
   const [bpm, setBpm] = useState(120);
-  const [pattern, setPattern] = useState<boolean[][]>(() => emptyPattern());
+  const [pattern, setPattern] = useState<boolean[][]>(() => starterPattern());
   const [tracks, setTracks] = useState<Track[]>(() => createTracks());
   const [swing, setSwing] = useState(0);
   const [velocity, setVelocity] = useState(0.8);
@@ -104,10 +113,17 @@ export const BeatStudio = () => {
       currentStepRef.current = nextStep; setCurrentStep(nextStep); scheduleNextStep();
     }, baseDuration * swingMultiplier);
   };
-  const togglePlayback = () => {
+  const togglePlayback = async () => {
     if (!canEdit) return;
     if (isPlayingRef.current) { stopPlayback(); return; }
-    void audioContextRef.current?.resume(); isPlayingRef.current = true; setIsPlaying(true); scheduleNextStep();
+    if (!isAudioEnabled) { toast.error("Sound is disabled by the YouTube player"); return; }
+    try {
+      await audioContextRef.current?.resume();
+      if (audioContextRef.current?.state === "suspended") { toast.error("Tap Play again to enable audio"); return; }
+      isPlayingRef.current = true; setIsPlaying(true);
+      stateRef.current.pattern.forEach((row, trackIndex) => { if (row[currentStepRef.current]) playSound(trackIndex); });
+      scheduleNextStep();
+    } catch { toast.error("Audio could not start in this browser"); }
   };
   const applyBeat = (next: BeatState) => { stopPlayback(); setBpm(next.bpm); setPattern(next.pattern.map((row) => [...row])); setTracks(next.tracks.map((track) => ({ ...track }))); setSwing(next.swing); setVelocity(next.velocity); };
   saveRef.current = async () => savePlayableData(JSON.stringify({ ...beat(), presets }));
