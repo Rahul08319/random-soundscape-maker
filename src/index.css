@@ -120,6 +120,22 @@ All colors MUST be HSL.
   .mix-channel b { color: hsl(var(--muted-foreground)); font-size: .6rem; }
   .mix-actions { display: flex; gap: .2rem; margin-top: 1rem; }
   .mix-actions .is-solo { color: hsl(var(--foreground)); background: color-mix(in srgb, var(--track) 25%, transparent); }
+  .playables-pill { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.25rem 0.65rem; border-radius: 9999px; border: 1px solid hsl(var(--border)); background: hsl(232 30% 8% / 0.85); font-size: 0.68rem; font-weight: 700; color: hsl(var(--foreground)); transition: all 0.2s ease; cursor: pointer; }
+  .playables-pill:hover { border-color: hsl(var(--primary)); background: hsl(232 30% 12%); transform: translateY(-1px); }
+  .status-dot { width: 0.5rem; height: 0.5rem; border-radius: 9999px; }
+  .status-dot.is-live { background: hsl(145 80% 55%); box-shadow: 0 0 8px hsl(145 80% 55% / 0.8); }
+  .status-dot.is-dev { background: hsl(190 85% 55%); box-shadow: 0 0 8px hsl(190 85% 55% / 0.8); }
+  .score-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.15rem 0.45rem; border-radius: 9999px; background: hsl(45 95% 60% / 0.15); color: hsl(45 95% 60%); font-weight: 800; font-size: 0.68rem; }
+  .reward-btn { border: 1px solid hsl(45 95% 60% / 0.6) !important; background: linear-gradient(135deg, hsl(45 95% 60% / 0.2), hsl(330 85% 60% / 0.2)) !important; color: hsl(45 95% 60%) !important; font-weight: 700 !important; font-size: 0.72rem !important; transition: all 0.2s ease; }
+  .reward-btn:hover { background: linear-gradient(135deg, hsl(45 95% 60% / 0.35), hsl(330 85% 60% / 0.35)) !important; box-shadow: 0 0 15px hsl(45 95% 60% / 0.4); }
+  .reward-btn.is-unlocked { border-color: hsl(145 80% 55% / 0.5) !important; background: hsl(145 80% 55% / 0.1) !important; color: hsl(145 80% 55%) !important; }
+  .yt-btn { color: hsl(0 85% 65%) !important; }
+  .yt-btn:hover { background: hsl(0 85% 65% / 0.15) !important; }
+  .sdk-diag-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin-top: 1rem; }
+  .sdk-diag-card { padding: 0.75rem; border: 1px solid hsl(var(--border)); border-radius: 0.5rem; background: hsl(232 30% 9%); }
+  .sdk-diag-card span { display: block; font-size: 0.65rem; color: hsl(var(--muted-foreground)); text-transform: uppercase; font-weight: 700; }
+  .sdk-diag-card b { display: block; margin-top: 0.2rem; font-size: 0.85rem; color: hsl(var(--foreground)); word-break: break-all; }
   @media (max-width: 900px) { .studio-console { grid-template-columns: auto 1fr; } .studio-actions { grid-column: 1 / -1; justify-content: start; } .mixer-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } .mix-channel:nth-child(3) { border-right: 0; } .mix-channel:nth-child(-n+3) { border-bottom: 1px solid hsl(var(--border)); } }
   @media (max-width: 640px) { .studio-shell { padding: .55rem; } .studio-header { align-items: start; flex-direction: column; } .studio-shortcuts { text-align: left; } .studio-console { grid-template-columns: 1fr; } .studio-parameters { gap: .9rem; } .studio-actions { grid-column: auto; } .preset-strip { align-items: flex-start; flex-direction: column; } .preset-strip-content { width: 100%; } .step-numbers { display: none; } .track-lane { grid-template-columns: 1fr; gap: .55rem; padding: .85rem 0; } .track-label { display: flex; justify-content: space-between; } .track-label small { margin: 0; } .step-grid { grid-template-columns: repeat(8, minmax(0, 1fr)); } .mixer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .mix-channel:nth-child(3) { border-right: 1px solid hsl(var(--border)); } .mix-channel:nth-child(2), .mix-channel:nth-child(4) { border-right: 0; } .mix-channel:nth-child(-n+4) { border-bottom: 1px solid hsl(var(--border)); } }
 }
+
