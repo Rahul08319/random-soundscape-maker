@@ -1,0 +1,18 @@
+{
+  "name": "Beat Studio - Random Soundscape Maker",
+  "short_name": "BeatStudio",
+  "description": "Professional ambient beat and soundscape synthesizer for web, YouTube Playables, and Microsoft Store.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090a10",
+  "theme_color": "#090a10",
+  "orientation": "any",
+  "categories": ["music", "games", "entertainment", "productivity"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

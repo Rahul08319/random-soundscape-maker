@@ -1,9 +1,9 @@
 import { ChangeEvent, CSSProperties, useEffect, useRef, useState } from "react";
 import {
   FileDown,
+  Layers,
   Pause,
   Play,
-  PlayCircle,
   Save,
   Share2,
   Shuffle,
@@ -14,7 +14,6 @@ import {
   Upload,
   Volume2,
   VolumeX,
-  Wrench,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -26,20 +25,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  getPlayablesSdk,
-  initializePlayables,
-  isInPlayablesEnv,
-  loadPlayableData,
-  markPlayableReady,
-  openPlayableContent,
-  reportPlayableError,
-  reportPlayableWarning,
-  requestPlayableInterstitial,
-  requestPlayableReward,
-  savePlayableData,
-  sendPlayableScore,
-} from "@/lib/youtubePlayables";
+import { SoundscapeVisualizer } from "./SoundscapeVisualizer";
+import { platformManager, SUPPORTED_PLATFORMS, type PlatformId } from "@/lib/platform";
 
 const STEPS = 16;
 const MAX_PRESETS = 24;
@@ -204,11 +191,13 @@ export const BeatStudio = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isSystemPaused, setIsSystemPaused] = useState(false);
+  // Default audio to enabled so sound always works seamlessly
   const [isAudioEnabled, setIsAudioEnabled] = useState(true);
   const [detectedLang, setDetectedLang] = useState("en");
   const [currentStep, setCurrentStep] = useState(0);
   const [selectedStep, setSelectedStep] = useState(0);
-  const [diagOpen, setDiagOpen] = useState(false);
+  const [platformDialogOpen, setPlatformDialogOpen] = useState(false);
+  const [activePlatformId, setActivePlatformId] = useState<PlatformId>(() => platformManager.currentId);
 
   const importRef = useRef<HTMLInputElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -219,12 +208,11 @@ export const BeatStudio = () => {
   const saveRef = useRef<() => Promise<boolean>>(async () => true);
   const lastAdTimeRef = useRef(0);
   const completedLoopsRef = useRef(0);
-
-  const isLivePlayables = isInPlayablesEnv();
-  const canEdit = isReady && !isSystemPaused;
-
   const applyBeatRef = useRef<(next: BeatState) => void>(() => undefined);
   const togglePlaybackRef = useRef<() => Promise<void>>(async () => undefined);
+
+  const canEdit = isReady && !isSystemPaused;
+  const platformMeta = platformManager.currentMetadata;
 
   useEffect(() => {
     stateRef.current = { bpm, pattern, tracks, swing, velocity };
@@ -233,7 +221,7 @@ export const BeatStudio = () => {
   const awardScore = (points: number) => {
     setGrooveScore((prev) => {
       const nextScore = Math.min(prev + points, Number.MAX_SAFE_INTEGER);
-      void sendPlayableScore(nextScore);
+      void platformManager.sendScore(nextScore);
       return nextScore;
     });
   };
@@ -276,7 +264,7 @@ export const BeatStudio = () => {
       return;
     }
 
-    // Track 6: 808 Sub (Deep pitch envelope)
+    // Track 6: 808 Sub (Deep pitch drop)
     if (trackIndex === 6) {
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
       gain.connect(ctx.destination);
@@ -290,7 +278,7 @@ export const BeatStudio = () => {
       return;
     }
 
-    // Track 7: Synth Lead (Arpeggiated Sawtooth)
+    // Track 7: Synth Lead (Melodic Pentatonic Arpeggiator)
     if (trackIndex === 7) {
       gain.gain.exponentialRampToValueAtTime(0.005, now + 0.35);
       gain.connect(ctx.destination);
@@ -305,7 +293,7 @@ export const BeatStudio = () => {
       return;
     }
 
-    // Base Tracks
+    // Base Instruments
     gain.gain.exponentialRampToValueAtTime(0.01, now + (trackIndex === 4 ? 0.55 : 0.22));
     gain.connect(ctx.destination);
 
@@ -349,7 +337,7 @@ export const BeatStudio = () => {
       currentStepRef.current = nextStep;
       setCurrentStep(nextStep);
 
-      // Award points on complete loop
+      // Award points on loop completion
       if (nextStep === 0) {
         completedLoopsRef.current += 1;
         if (completedLoopsRef.current % 4 === 0) {
@@ -367,15 +355,15 @@ export const BeatStudio = () => {
       stopPlayback();
       return;
     }
+
+    // Auto-unmute if user clicks play
     if (!isAudioEnabled) {
-      toast.error("Sound is disabled in YouTube player settings");
-      return;
+      setIsAudioEnabled(true);
     }
+
     try {
-      await audioContextRef.current?.resume();
       if (audioContextRef.current?.state === "suspended") {
-        toast.error("Tap Play again to start audio context");
-        return;
+        await audioContextRef.current.resume();
       }
       isPlayingRef.current = true;
       setIsPlaying(true);
@@ -385,8 +373,7 @@ export const BeatStudio = () => {
       scheduleNextStep();
       awardScore(5);
     } catch {
-      reportPlayableError("Audio context failed to resume");
-      toast.error("Audio could not start in this browser");
+      toast.error("Audio could not start in this browser session");
     }
   };
 
@@ -410,7 +397,7 @@ export const BeatStudio = () => {
       grooveScore,
       isVipUnlocked,
     });
-    return await savePlayableData(payload);
+    return await platformManager.saveData(payload);
   };
 
   // 1. AudioContext setup
@@ -423,23 +410,25 @@ export const BeatStudio = () => {
     };
   }, []);
 
-  // 2. Respond to system audio state changes
+  // 2. Audio muting control
   useEffect(() => {
     if (!isAudioEnabled) {
       void audioContextRef.current?.suspend();
+    } else if (audioContextRef.current?.state === "suspended" && isPlaying) {
+      void audioContextRef.current?.resume();
     }
-  }, [isAudioEnabled]);
+  }, [isAudioEnabled, isPlaying]);
 
-  // 3. YouTube Playables SDK Lifecycle initialization
+  // 3. Multi-platform lifecycle initialization
   useEffect(() => {
     let mounted = true;
     let cleanup = () => undefined;
 
     const setup = async () => {
-      cleanup = await initializePlayables({
-        onAudioEnabledChange: (enabled) => {
-          setIsAudioEnabled(enabled);
-          if (!enabled) stopPlayback();
+      cleanup = await platformManager.initialize({
+        onAudioMutedChange: (isMuted) => {
+          setIsAudioEnabled(!isMuted);
+          if (isMuted) stopPlayback();
         },
         onPause: () => {
           setIsSystemPaused(true);
@@ -455,8 +444,10 @@ export const BeatStudio = () => {
         },
       });
 
-      // Load saved state from cloud save or fallback
-      const rawData = await loadPlayableData();
+      platformManager.firstFrameReady();
+
+      // Load saved state
+      const rawData = await platformManager.loadData();
       let loadedBeat: BeatState | null = null;
       let vipUnlocked = false;
 
@@ -476,7 +467,7 @@ export const BeatStudio = () => {
           }
           loadedBeat = validBeat(parsed, vipUnlocked);
         } catch {
-          reportPlayableError("Failed to parse loaded studio data");
+          /* parse fallback */
         }
       }
 
@@ -487,16 +478,14 @@ export const BeatStudio = () => {
 
       if (mounted) {
         setIsReady(true);
-        // Inform YouTube the game is ready for interaction
-        markPlayableReady();
+        platformManager.gameReady();
       }
     };
 
-    void setup().catch((err) => {
-      reportPlayableError(err);
+    void setup().catch(() => {
       if (mounted) {
         setIsReady(true);
-        markPlayableReady();
+        platformManager.gameReady();
       }
     });
 
@@ -506,7 +495,7 @@ export const BeatStudio = () => {
     };
   }, []);
 
-  // Auto-save whenever parameters or presets change
+  // Auto-save changes
   useEffect(() => {
     if (isReady) {
       void saveRef.current();
@@ -530,6 +519,11 @@ export const BeatStudio = () => {
       if (event.key === "ArrowRight") {
         event.preventDefault();
         setSelectedStep((step) => (step + 1) % STEPS);
+        return;
+      }
+      if (event.key.toLowerCase() === "m") {
+        event.preventDefault();
+        setIsAudioEnabled((prev) => !prev);
         return;
       }
       if (event.key.toLowerCase() === "f") {
@@ -560,6 +554,7 @@ export const BeatStudio = () => {
     (window as Window & { render_game_to_text?: () => string }).render_game_to_text = () =>
       JSON.stringify({
         mode: isPlaying ? "playing" : "editing",
+        platform: platformManager.currentId,
         bpm,
         swing,
         velocity,
@@ -585,11 +580,11 @@ export const BeatStudio = () => {
   const shufflePattern = async () => {
     if (!canEdit) return;
 
-    // Trigger interstitial ad on natural breakpoint (with 45s cooldown)
+    // Trigger platform interstitial ad on natural breakpoint (with 45s cooldown)
     const now = Date.now();
     if (now - lastAdTimeRef.current > 45000) {
       lastAdTimeRef.current = now;
-      await requestPlayableInterstitial();
+      await platformManager.requestInterstitial();
     }
 
     setPattern(
@@ -611,8 +606,8 @@ export const BeatStudio = () => {
       return;
     }
 
-    toast.loading("Requesting YouTube Playables rewarded ad...");
-    const rewarded = await requestPlayableReward(REWARD_VIP_ID);
+    toast.loading("Preparing rewarded ad...");
+    const rewarded = await platformManager.requestReward(REWARD_VIP_ID);
     toast.dismiss();
 
     if (rewarded) {
@@ -624,15 +619,16 @@ export const BeatStudio = () => {
         return [...prev, ...emptyPattern(updatedTracks.length - prev.length)];
       });
       awardScore(100);
-      toast.success("VIP Sound Pack Unlocked! Enjoy 808 Sub and Synth Lead.");
+      toast.success("VIP Sound Pack Unlocked! 808 Sub and Synth Lead are ready.");
     } else {
-      toast.error("Rewarded ad could not be completed at this time.");
+      toast.error("Rewarded ad could not be displayed at this time.");
     }
   };
 
-  const handleOpenInspiration = async () => {
-    toast.info("Opening YouTube Ambient Soundscape inspiration...");
-    await openPlayableContent("jfKfPfyJRdk", "VIDEO");
+  const handleSelectPlatform = async (id: PlatformId) => {
+    setActivePlatformId(id);
+    await platformManager.switchPlatform(id);
+    toast.success(`Active platform switched to ${platformManager.currentMetadata.name}`);
   };
 
   const savePreset = () => {
@@ -655,11 +651,10 @@ export const BeatStudio = () => {
   };
 
   const exportJson = async () => {
-    // Interstitial ad opportunity on export breakpoint
     const now = Date.now();
     if (now - lastAdTimeRef.current > 60000) {
       lastAdTimeRef.current = now;
-      await requestPlayableInterstitial();
+      await platformManager.requestInterstitial();
     }
 
     const blob = new Blob(
@@ -691,7 +686,6 @@ export const BeatStudio = () => {
       if (typeof imported.grooveScore === "number") setGrooveScore(imported.grooveScore);
       toast.success("Soundscape imported successfully");
     } catch {
-      reportPlayableError("Failed to import soundscape JSON");
       toast.error("That file is not a valid Soundscape export");
     } finally {
       event.target.value = "";
@@ -715,19 +709,20 @@ export const BeatStudio = () => {
   return (
     <main className="studio-shell">
       <div className="studio-frame">
-        {/* Studio Header */}
-        <header className="studio-header">
+        {/* Apple Design Fluid Header */}
+        <header className="apple-header">
           <div>
             <div className="flex items-center gap-3">
-              <p className="studio-kicker">YOUTUBE PLAYABLES READY</p>
+              <p className="studio-kicker">SPATIAL SOUNDSCAPE</p>
               <button
                 type="button"
-                className="playables-pill"
-                onClick={() => setDiagOpen(true)}
-                title="View YouTube Playables SDK Status"
+                className="apple-pill"
+                onClick={() => setPlatformDialogOpen(true)}
+                title="Select Gaming Platform Engine"
               >
-                <span className={`status-dot ${isLivePlayables ? "is-live" : "is-dev"}`} />
-                <span>{isLivePlayables ? "Playables Live" : "Playables Dev"}</span>
+                <Layers className="w-3.5 h-3.5 text-sky-400" />
+                <span>{platformMeta.name}</span>
+                <span className="status-dot is-live" />
               </button>
             </div>
             <h1 className="studio-wordmark">
@@ -737,24 +732,35 @@ export const BeatStudio = () => {
 
           <div className="flex flex-col items-end gap-2">
             <div className="flex items-center gap-2">
-              <div className="score-badge" title="Soundscape Mastery Score sent to YouTube">
+              {/* Interactive Master Mute/Unmute Speaker */}
+              <button
+                type="button"
+                className={`apple-pill ${!isAudioEnabled ? "text-red-400 border-red-500/40" : ""}`}
+                onClick={() => setIsAudioEnabled((prev) => !prev)}
+                title={isAudioEnabled ? "Mute Master Audio" : "Unmute Master Audio"}
+              >
+                {isAudioEnabled ? <Volume2 className="w-3.5 h-3.5 text-emerald-400" /> : <VolumeX className="w-3.5 h-3.5" />}
+                <span>{isAudioEnabled ? "Audio On" : "Muted"}</span>
+              </button>
+
+              <div className="score-badge" title="Mastery Score">
                 <Trophy className="w-3.5 h-3.5" />
                 <span>{grooveScore.toLocaleString()} PTS</span>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="yt-btn text-xs gap-1"
-                onClick={handleOpenInspiration}
-                title="Open ambient inspiration on YouTube"
-              >
-                <PlayCircle className="w-4 h-4" />
-                <span>YT Inspiration</span>
-              </Button>
             </div>
-            <p className="studio-shortcuts">Space play · ←/→ select · 1–8 toggle · F fullscreen</p>
+            <p className="studio-shortcuts">Space play · M mute · ←/→ step · 1–8 toggle · F fullscreen</p>
           </div>
         </header>
+
+        {/* Real-time Apple Fluid Visualizer */}
+        <div className="px-6 py-2 bg-black/20">
+          <SoundscapeVisualizer
+            isPlaying={isPlaying}
+            bpm={bpm}
+            currentStep={currentStep}
+            isAudioEnabled={isAudioEnabled}
+          />
+        </div>
 
         {/* Playback & Parameters Bar */}
         <section className="studio-console" aria-label="Playback controls">
@@ -811,7 +817,7 @@ export const BeatStudio = () => {
           </div>
 
           <div className="studio-actions">
-            {/* Rewarded Ad Monetization Button */}
+            {/* Rewarded Ad VIP Pack Button */}
             <Button
               className={`reward-btn ${isVipUnlocked ? "is-unlocked" : ""}`}
               onClick={handleUnlockVipPack}
@@ -852,14 +858,6 @@ export const BeatStudio = () => {
             >
               <Upload />
               Import
-            </Button>
-            <Button
-              onClick={() => setDiagOpen(true)}
-              disabled={!canEdit}
-              variant="ghost"
-              title="SDK Diagnostics"
-            >
-              <Wrench />
             </Button>
             <input
               ref={importRef}
@@ -1026,49 +1024,53 @@ export const BeatStudio = () => {
         </section>
       </div>
 
-      {/* YouTube Playables SDK Diagnostics & Test Suite Dialog */}
-      <Dialog open={diagOpen} onOpenChange={setDiagOpen}>
-        <DialogContent className="max-w-md">
+      {/* Universal Multi-Platform Engine Switcher & Verification Dialog */}
+      <Dialog open={platformDialogOpen} onOpenChange={setPlatformDialogOpen}>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <span className={`status-dot ${isLivePlayables ? "is-live" : "is-dev"}`} />
-              YouTube Playables SDK v1
+              <Layers className="w-5 h-5 text-sky-400" />
+              Native Multi-Platform Engine
             </DialogTitle>
             <DialogDescription>
-              Integration diagnostics and developer verification controls for certification.
+              Native zero-dependency SDK bridge for all 13 major web and app gaming platforms.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="sdk-diag-grid">
-            <div className="sdk-diag-card">
-              <span>Environment</span>
-              <b>{isLivePlayables ? "YouTube Playables" : "Local / Standalone Dev"}</b>
+          {/* Active Platform Card */}
+          <div className="apple-glass-card mt-2">
+            <div className="flex justify-between items-center mb-1">
+              <span>Active Target</span>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-mono">
+                {platformMeta.sdkName}
+              </span>
             </div>
-            <div className="sdk-diag-card">
-              <span>SDK Version</span>
-              <b>{getPlayablesSdk()?.SDK_VERSION ?? "v1 (Embedded)"}</b>
-            </div>
-            <div className="sdk-diag-card">
-              <span>System Audio</span>
-              <b>{isAudioEnabled ? "Enabled (100%)" : "Muted by Host"}</b>
-            </div>
-            <div className="sdk-diag-card">
-              <span>Language (BCP-47)</span>
-              <b>{detectedLang}</b>
-            </div>
-            <div className="sdk-diag-card">
-              <span>Groove Score</span>
-              <b>{grooveScore.toLocaleString()} PTS</b>
-            </div>
-            <div className="sdk-diag-card">
-              <span>Monetization</span>
-              <b>{isVipUnlocked ? "VIP Unlocked" : "Standard"}</b>
+            <b>{platformMeta.name}</b>
+            <p className="text-xs text-muted-foreground mt-1">{platformMeta.description}</p>
+          </div>
+
+          <div className="mt-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+              Select Platform Target
+            </p>
+            <div className="platform-grid">
+              {SUPPORTED_PLATFORMS.map((platform) => (
+                <button
+                  key={platform.id}
+                  type="button"
+                  onClick={() => handleSelectPlatform(platform.id)}
+                  className={`platform-chip ${activePlatformId === platform.id ? "is-selected" : ""}`}
+                >
+                  <span>{platform.name}</span>
+                  <small>{platform.sdkName}</small>
+                </button>
+              ))}
             </div>
           </div>
 
           <div className="space-y-2 mt-4">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Test Suite Actions
+              Verification & Ad Testing
             </p>
             <div className="grid grid-cols-2 gap-2">
               <Button
@@ -1076,9 +1078,9 @@ export const BeatStudio = () => {
                 size="sm"
                 onClick={async () => {
                   toast.loading("Testing Interstitial Ad...");
-                  const ok = await requestPlayableInterstitial();
+                  const ok = await platformManager.requestInterstitial();
                   toast.dismiss();
-                  toast.success(ok ? "Interstitial requested" : "Interstitial returned (handled)");
+                  toast.success(ok ? "Interstitial completed" : "Interstitial handled");
                 }}
               >
                 Test Interstitial Ad
@@ -1088,7 +1090,7 @@ export const BeatStudio = () => {
                 size="sm"
                 onClick={async () => {
                   toast.loading("Testing Rewarded Ad...");
-                  const ok = await requestPlayableReward(REWARD_VIP_ID);
+                  const ok = await platformManager.requestReward(REWARD_VIP_ID);
                   toast.dismiss();
                   toast.success(ok ? "Rewarded Ad success" : "Rewarded Ad not completed");
                 }}
@@ -1101,7 +1103,7 @@ export const BeatStudio = () => {
                 onClick={async () => {
                   const newScore = grooveScore + 50;
                   setGrooveScore(newScore);
-                  await sendPlayableScore(newScore);
+                  await platformManager.sendScore(newScore);
                   toast.success(`Sent score: ${newScore}`);
                 }}
               >
@@ -1111,11 +1113,11 @@ export const BeatStudio = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  reportPlayableWarning("Manual test warning");
-                  toast.success("Health warning logged");
+                  setIsAudioEnabled((prev) => !prev);
+                  toast.success(isAudioEnabled ? "Audio muted" : "Audio unmuted");
                 }}
               >
-                Test Health Log
+                Toggle Master Audio
               </Button>
             </div>
           </div>

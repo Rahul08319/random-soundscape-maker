@@ -1,21 +1,21 @@
-# 🎵 Beat Studio — Random Soundscape Maker
+# 🎵 Beat Studio — Spatial Soundscape Synthesizer
 
 <div align="center">
 
-[![YouTube Playables SDK](https://img.shields.io/badge/YouTube_Playables_SDK-v1_Ready-FF0000?style=for-the-badge&logo=youtube&logoColor=white)](https://developers.google.com/youtube/gaming/playables)
+[![Multi-Platform Engine](https://img.shields.io/badge/Native_Platforms-13_Supported-blue?style=for-the-badge&logo=html5&logoColor=white)](#-multi-platform-matrix)
+[![Zero Playgama](https://img.shields.io/badge/Architecture-Zero_Playgama_Dependency-emerald?style=for-the-badge&logo=shield&logoColor=white)](#-zero-playgama-architecture)
+[![Apple Design](https://img.shields.io/badge/Design_Language-Apple_HIG_Fluid-grey?style=for-the-badge&logo=apple&logoColor=white)](#-apple-design-foundations)
+[![Web Audio API](https://img.shields.io/badge/Synthesis-Real--time_Oscillators-orange?style=for-the-badge&logo=soundcharts&logoColor=white)](#-audio-synthesis-engine)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-18.3-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Web Audio API](https://img.shields.io/badge/Web_Audio-Synthesizer-orange?style=for-the-badge&logo=soundcharts&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
 
 <br />
 
-**A touch-friendly, neon-infused 16-step soundscape & beat sequencer built for YouTube Playables and the modern web.**
+**An expressive, touch-friendly 16-step spatial soundscape and beat synthesizer designed with Apple Human Interface Guidelines and powered by a native zero-dependency multi-platform engine.**
 
-Craft ambient loops, shape synthesizer voices, persist grooves to the YouTube cloud, and unlock exclusive sound packs with built-in monetization.
+Built for instantaneous play across YouTube Playables, Facebook Instant Games, Poki, CrazyGames, Discord, Microsoft Store, and major global game portals.
 
-[🎮 Playables SDK Docs](https://developers.google.com/youtube/gaming/playables/reference/sdk) • [🧪 Test Suite Guide](https://developers.google.com/youtube/gaming/playables/reference/test_suite_guide) • [✨ Report an Issue](https://github.com/Rahul08319/random-soundscape-maker/issues)
+[🌐 Live Demo](https://github.com/Rahul08319/random-soundscape-maker) • [🎮 Multi-Platform Guide](#-multi-platform-matrix) • [🎨 Apple Design Specs](#-apple-design-foundations)
 
 ---
 
@@ -24,137 +24,127 @@ Craft ambient loops, shape synthesizer voices, persist grooves to the YouTube cl
 ## 📑 Table of Contents
 
 - [Overview](#-overview)
-- [Key Features](#-key-features)
-- [YouTube Playables SDK Integration](#-youtube-playables-sdk-integration)
-  - [SDK Loading & Lifecycle](#1-sdk-loading--lifecycle)
-  - [System Audio & Pauses](#2-system-audio--pauses)
-  - [Cloud Storage & Persistence](#3-cloud-storage--persistence)
-  - [Monetization & Ads](#4-monetization--ads)
-  - [Engagement & Leaderboards](#5-engagement--leaderboards)
-  - [Diagnostics & Health Logging](#6-diagnostics--health-logging)
-- [Monetization Architecture](#-monetization-architecture)
+- [Multi-Platform Matrix](#-multi-platform-matrix)
+- [Zero-Playgama Native Architecture](#-zero-playgama-native-architecture)
+- [Apple Design Foundations](#-apple-design-foundations)
+  - [Liquid Glass & Translucent Materials](#1-liquid-glass--translucent-materials)
+  - [Fluid Motion & Physical Feedback](#2-fluid-motion--physical-feedback)
+  - [Harmonic Real-Time Audio Visualizer](#3-harmonic-real-time-audio-visualizer)
+  - [Typography & Layout Grid](#4-typography--layout-grid)
+- [Audio Synthesis Engine](#-audio-synthesis-engine)
+- [Monetization & Ads](#-monetization--ads)
 - [Keyboard Controls](#-keyboard-controls)
-- [Playables Test Suite & CSP Setup](#-playables-test-suite--csp-setup)
-- [Local Development](#-local-development)
-- [Project Architecture](#-project-architecture)
-- [License & Author](#-license--author)
+- [Local Development & Testing](#-local-development--testing)
+- [Platform Submission Guide](#-platform-submission-guide)
+- [Author & License](#-author--license)
 
 ---
 
 ## 🎧 Overview
 
-**Beat Studio (Random Soundscape Maker)** is an interactive rhythm and ambient synthesizer studio. It bridges zero-latency procedural audio synthesis with full compliance for the **YouTube Playables Web SDK (v1)**.
+**Beat Studio** is an ambient music creation experience engineered from the ground up to eliminate third-party wrapper dependencies. It unites procedural oscillator synthesis with an adaptable platform bridge that autodetects and binds natively to 13 gaming portals without bulky SDKs like Playgama.
 
-Whether running inside the YouTube mobile app, the YouTube desktop player, or a local developer environment, Beat Studio seamlessly adapts its audio state, saves sessions to the cloud, respects system pause/resume triggers, and provides built-in monetization through non-intrusive rewarded and interstitial ads.
-
----
-
-## ✨ Key Features
-
-- **🎛️ 16-Step Dual Grid Sequencer**: Program Kick, Snare, Hi-Hat, Clap, Bass, Shaker, and unlocked VIP instruments (*808 Sub* & *Synth Lead*).
-- **🔊 Real-Time Procedural Synthesis**: Web Audio API oscillator chains with exponential frequency drops, white noise generators, and warm filter slopes — no bulky sound files to download.
-- **⚡ YouTube Playables Cloud Save**: Saves your patterns, presets, and high scores automatically to YouTube cloud storage (with local storage fallback).
-- **💎 VIP Neon Sound Pack (Rewarded Ads)**: Watch an optional rewarded ad to instantly unlock the 808 Sub-Bass and Arpeggiated Synth Lead voices.
-- **🎲 Intelligent Groove Shuffler**: Generates dynamic musical soundscapes on the fly, paired with natural breakpoint interstitial ad hooks.
-- **🏆 Soundscape Mastery Score**: Automatically syncs rhythm scores to YouTube's player leaderboard UI.
-- **🌐 YouTube Inspiration**: Direct deep link to ambient and lofi soundscape streams using `openYTContent`.
-- **🛠️ In-Game SDK Diagnostics Modal**: One-click tester for Playables reviewers and certification testers.
+Featuring Apple-style liquid glass materials, spring-damped micro-interactions, responsive touch ergonomics, and an interactive real-time waveform visualizer, Beat Studio feels like a native piece of hardware in your browser.
 
 ---
 
-## 🚀 YouTube Playables SDK Integration
+## 🌐 Multi-Platform Matrix
 
-Beat Studio strictly follows the [YouTube Playables Certification Requirements](https://developers.google.com/youtube/gaming/playables/certification/requirements).
+Beat Studio runs a **Native Multi-Platform Engine** (`src/lib/platform/`) with first-class implementations for all major HTML5 and web runtime ecosystems:
 
-| API / Feature | Method | Status | Purpose |
-|---|---|:---:|---|
-| **Early SDK Load** | `<script src="https://www.youtube.com/game_api/v1"></script>` | ✅ Done | Loaded in `<head>` before any game code bundle |
-| **First Frame** | `ytgame.game.firstFrameReady()` | ✅ Done | Notifies host player that rendering has started |
-| **Game Ready** | `ytgame.game.gameReady()` | ✅ Done | Signals that loading is finished and game is interactable |
-| **Environment Check** | `ytgame.IN_PLAYABLES_ENV` | ✅ Done | Forks behavior between Playables sandbox & local dev |
-| **System Audio** | `ytgame.system.isAudioEnabled()` | ✅ Done | Initializes audio state aligned with YouTube player |
-| **Audio Change** | `ytgame.system.onAudioEnabledChange()` | ✅ Done | Reactively mutes/unmutes Web Audio Context |
-| **System Pause** | `ytgame.system.onPause()` | ✅ Done | Pauses sequencer and flushes state save before eviction |
-| **System Resume** | `ytgame.system.onResume()` | ✅ Done | Unpauses UI and restores interactive focus |
-| **Language Tag** | `ytgame.system.getLanguage()` | ✅ Done | Adapts BCP-47 locale tag (`en-US`, `es-419`, etc.) |
-| **Cloud Load** | `ytgame.game.loadData()` | ✅ Done | Restores serialized state from YouTube cloud |
-| **Cloud Save** | `ytgame.game.saveData()` | ✅ Done | Persists UTF-16 JSON (< 3 MiB) to cloud storage |
-| **Rewarded Ad** | `ytgame.ads.requestRewardedAd()` | ✅ Done | Unlocks VIP Neon Sound Pack (`reward-vip-sound-pack-1`) |
-| **Interstitial Ad** | `ytgame.ads.requestInterstitialAd()` | ✅ Done | Triggers at natural pauses (Shuffle / Project Export) |
-| **Send Score** | `ytgame.engagement.sendScore()` | ✅ Done | Transmits integer score to YouTube UI |
-| **Open YT Content** | `ytgame.engagement.openYTContent()` | ✅ Done | Opens curated music inspiration video on YouTube |
-| **Health Errors** | `ytgame.health.logError()` | ✅ Done | Reports critical caught exceptions to host |
-| **Health Warnings** | `ytgame.health.logWarning()` | ✅ Done | Reports recoverable warnings to host |
-
-### 1. SDK Loading & Lifecycle
-
-The SDK script is placed at the very top of `index.html` inside `<head>` before any script modules:
-
-```html
-<!doctype html>
-<html lang="en">
-  <head>
-    <!-- YouTube Playables Web SDK MUST be loaded before any game code -->
-    <script src="https://www.youtube.com/game_api/v1"></script>
-    ...
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
-```
-
-On app initialization, `ytgame.game.firstFrameReady()` is invoked immediately, followed by state restoration and `ytgame.game.gameReady()` once interactive.
-
-### 2. System Audio & Pauses
-
-```typescript
-// Synchronize audio context state with YouTube player settings
-const isEnabled = ytgame.system.isAudioEnabled();
-ytgame.system.onAudioEnabledChange((enabled) => {
-  setIsAudioEnabled(enabled);
-  if (!enabled) audioContext.suspend();
-});
-
-// Auto-save within the eviction grace period on host pause
-ytgame.system.onPause(() => {
-  stopPlayback();
-  void savePlayableData(JSON.stringify(studioState));
-});
-```
-
-### 3. Cloud Storage & Persistence
-
-Cloud saves adhere to the Playables specification:
-- Enforces valid UTF-16 strings via `String.prototype.isWellFormed()`.
-- Validates payload size is strictly within the **3 MiB** threshold.
-- Automatically falls back to `localStorage` during local standalone development.
+| Platform | Native Bridge / SDK | Cloud Save | Rewarded Ads | Interstitial Ads | Leaderboards |
+|---|---|:---:|:---:|:---:|:---:|
+| **YouTube Playables** | `ytgame` SDK v1 | ✅ | ✅ | ✅ | ✅ |
+| **Facebook Instant Games** | `FBInstant` SDK v7 | ✅ | ✅ | ✅ | ✅ |
+| **Poki** | `PokiSDK` v2 | ✅ | ✅ | ✅ | — |
+| **CrazyGames** | `CrazyGames.SDK` v3 | ✅ | ✅ | ✅ | ✅ |
+| **Yandex Games** | `YaGames` SDK v2 | ✅ | ✅ | ✅ | ✅ |
+| **GameDistribution** | `gdsdk` | ✅ | ✅ | ✅ | — |
+| **Discord Activities** | Discord Embedded App SDK | ✅ | — | — | ✅ |
+| **JioGames** | `jioGames` SDK | ✅ | ✅ | ✅ | ✅ |
+| **Y8 Games** | Y8 Account & Ads API | ✅ | ✅ | ✅ | ✅ |
+| **Lagged** | Lagged Game API | ✅ | ✅ | ✅ | ✅ |
+| **Microsoft Store (PWA)**| Windows App Runtime PWA | ✅ | — | — | — |
+| **Huawei & Xiaomi Quick Games** | `qg` Quick Game API | ✅ | ✅ | ✅ | — |
+| **MSN & Reddit Games** | Embedded Canvas PostMessage | ✅ | — | — | ✅ |
+| **Standalone Web / Dev** | LocalStorage + Web Audio | ✅ | Simulated | Simulated | Local |
 
 ---
 
-## 💰 Monetization Architecture
+## ⚡ Zero-Playgama Native Architecture
 
-Beat Studio integrates non-intrusive ads designed to reward player creativity:
+Unlike monolithic aggregators (such as Playgama), Beat Studio uses direct, isolated native adapters for every platform:
 
 ```mermaid
-graph LR
-    A[Player Interaction] --> B{Action Type}
-    B -->|Click 'Unlock VIP Pack'| C[requestRewardedAd]
-    C -->|Success| D[Unlock 808 Sub + Synth Lead + Bonus Score]
-    C -->|Failed/Dismissed| E[Graceful Recovery / Try Later]
-    B -->|Click 'Shuffle' / 'Export'| F{Ad Cooldown Check}
-    F -->|> 45s elapsed| G[requestInterstitialAd]
-    F -->|< 45s elapsed| H[Immediate Shuffle/Export]
+graph TD
+    A[Beat Studio Core UI] --> B[UnifiedPlatformManager]
+    B -->|Detects / Routes| C{Target Platform}
+    C --> D[YouTubePlayablesAdapter]
+    C --> E[FacebookInstantAdapter]
+    C --> F[PokiAdapter]
+    C --> G[CrazyGamesAdapter]
+    C --> H[YandexGamesAdapter]
+    C --> I[GameDistributionAdapter]
+    C --> J[DiscordActivitiesAdapter]
+    C --> K[JioGamesAdapter]
+    C --> L[GenericWebAdapter: Y8 / Lagged / MS Store / QuickGames]
 ```
 
-### Rewarded Ads (`requestRewardedAd`)
-- **Reward Identifier**: `"reward-vip-sound-pack-1"` (clean, user-data-free string).
-- **Perk**: Adds the **808 Sub** (deep pitch slide) and **Synth Lead** (arpeggiated pentatonic synth) voices directly to the sequencer.
+### Key Advantages
+1. **Zero Bloat**: No extraneous tracking scripts, no third-party vendor lock-in, and zero wrapper overhead.
+2. **Instant Hot-Swapping**: Switch platforms dynamically in development using URL parameters (e.g. `?platform=poki` or `?platform=facebook`) or through the in-game Platform Selector modal.
+3. **Resilient Fallbacks**: If any platform API fails or is unreachable, the engine automatically falls back to local storage and browser-native behaviors without breaking user gameplay.
 
-### Interstitial Ads (`requestInterstitialAd`)
-- Triggered at natural creative breakpoints (shuffling a new groove or exporting a project JSON).
-- Guarded by a minimum 45-second cooldown timer to ensure a smooth, player-first experience.
+---
+
+## 🍏 Apple Design Foundations
+
+Beat Studio incorporates Apple's design philosophy across every surface:
+
+### 1. Liquid Glass & Translucent Materials
+- **Frosted Glass Depth**: Navigation and control bars utilize `backdrop-filter: blur(28px) saturate(190%)` layered over elevated backgrounds (`hsl(232 35% 6% / 0.7)`).
+- **Specular Highlights**: Crisp top border reflections (`inset 0 1px 0 rgba(255, 255, 255, 0.12)`) simulate light catching the upper bevel of the glass pane.
+- **Continuous Curvature (Squircles)**: Cards and buttons feature smooth G2-style continuous corner curvature rather than harsh boxy radii.
+
+### 2. Fluid Motion & Physical Feedback
+- **Tactile Spring Presses**: Controls respond on `pointerdown` with an Apple-style spring scale (`active:scale-[0.96] transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)`).
+- **Direct Manipulation**: Step cells respond instantly with harmonic neon ripples and playhead luminescence.
+- **Master Audio Management**: Direct, frictionless mute/unmute control accessible with one tap or the <kbd>M</kbd> shortcut.
+
+### 3. Harmonic Real-Time Audio Visualizer
+- An animated canvas visualizer renders multi-harmonic sine waves live at 60 FPS, reflecting current tempo, active step pulses, and master volume state with zero CPU degradation.
+
+### 4. Typography & Layout Grid
+- Strict San Francisco font hierarchy (`-apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text"`).
+- Dynamic Type optical tracking: negative letter spacing on hero headings (`-0.035em`) for punchy titles, balanced with spacious body legibility.
+
+---
+
+## 🔊 Audio Synthesis Engine
+
+Beat Studio creates procedural soundscapes using the browser's native **Web Audio API** — no audio sample files are required:
+
+| Voice | Synthesis Method | Characteristics |
+|---|---|---|
+| **Kick** | Sine wave oscillator | Rapid pitch sweep from 150 Hz down to 45 Hz with exponential decay |
+| **Snare** | Triangle oscillator | Snappy 190 Hz transient with sharp acoustic envelope |
+| **Hi-Hat** | Square oscillator | Metallic 6,800 Hz overtone pulse with short 0.2s duration |
+| **Clap** | Sawtooth oscillator | Textured 950 Hz burst with warm midrange bite |
+| **Bass** | Sub-bass sine oscillator | Warm 62 Hz to 48 Hz pitch slide for atmospheric depth |
+| **Shaker** | Pure white noise buffer | Generated 120ms random noise burst through shaped envelope |
+| **808 Sub** *(VIP)* | Ultra-low sine oscillator | Deep sub-bass slide from 85 Hz down to 32 Hz with extended sustain |
+| **Synth Lead** *(VIP)*| Arpeggiated sawtooth wave | Multi-note pentatonic synthesizer line synchronized to step sequence |
+
+---
+
+## 💰 Monetization & Ads
+
+- **Rewarded Ads (`requestReward`)**:
+  - Unlocks the **VIP Neon Sound Pack** (activating the *808 Sub* and *Synth Lead* tracks + 100 bonus mastery points).
+  - Works natively with YouTube Playables Rewarded Ads, Facebook Rewarded Video, Poki Rewarded Breaks, CrazyGames Rewarded Ads, and Yandex Rewarded Video.
+- **Interstitial Ads (`requestInterstitial`)**:
+  - Fires at natural pauses (generating a new groove via *Shuffle* or exporting a project JSON).
+  - Protected by a built-in 45-second cooldown timer to preserve the creative flow.
 
 ---
 
@@ -163,40 +153,16 @@ graph LR
 | Key | Action |
 |---|---|
 | <kbd>Space</kbd> | Toggle Play / Pause |
-| <kbd>←</kbd> / <kbd>→</kbd> | Move step selector cursor |
-| <kbd>1</kbd> – <kbd>8</kbd> | Toggle active track beat on current step |
+| <kbd>M</kbd> | Toggle Master Audio Mute |
+| <kbd>←</kbd> / <kbd>→</kbd> | Move Step Selector Cursor |
+| <kbd>1</kbd> – <kbd>8</kbd> | Toggle Voice Beat on Selected Step |
 | <kbd>F</kbd> | Toggle Fullscreen |
 
 ---
 
-## 🧪 Playables Test Suite & CSP Setup
+## 💻 Local Development & Testing
 
-YouTube Playables runs games inside a secured sandbox with strict Content Security Policy (CSP) enforcement.
-
-### Recommended CSP Header for Local Testing
-
-When testing locally in Google Chrome DevTools (using [Local Overrides](https://developer.chrome.com/docs/devtools/overrides)), set your `Content-Security-Policy` response header to:
-
-```http
-default-src 'none'; script-src 'report-sample' 'self' 'unsafe-eval' 'unsafe-inline' blob: https://www.youtube.com/game_api/v0 https://www.youtube.com/game_api/v0/ https://www.youtube.com/game_api/v1 https://www.youtube.com/game_api/v1/; object-src 'none'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' blob: data:; media-src 'self' blob:; font-src 'self' data: https://fonts.googleapis.com https://fonts.gstatic.com; connect-src 'self' blob: data:; sandbox allow-pointer-lock allow-same-origin allow-scripts; base-uri 'self'; manifest-src 'self'; worker-src 'self' blob:
-```
-
-### In-Game Diagnostics Tool
-Click the **"Playables Live / Dev"** pill in the top header or the wrench icon (<kbd>🛠️</kbd>) to open the diagnostics panel, where you can directly trigger:
-- `Test Interstitial Ad`
-- `Test Rewarded Ad`
-- `Test Send Score (+50)`
-- `Test Health Warning Log`
-
----
-
-## 💻 Local Development
-
-### Prerequisites
-- Node.js 18+ (Node 22 recommended)
-- npm or bun
-
-### Setup
+### Installation
 
 ```bash
 # 1. Clone repository
@@ -210,13 +176,23 @@ npm install
 npm run dev
 ```
 
-### Production Build & Linting
+### Test Platforms Locally
+Append the `?platform=` query parameter to test any platform's SDK behavior:
+- `http://localhost:5173/?platform=youtube` (YouTube Playables)
+- `http://localhost:5173/?platform=poki` (Poki)
+- `http://localhost:5173/?platform=crazygames` (CrazyGames)
+- `http://localhost:5173/?platform=facebook` (Facebook Instant Games)
+- `http://localhost:5173/?platform=yandex` (Yandex Games)
+
+Or simply click the **Platform Badge** in the top header to open the interactive Platform Selector modal!
+
+### Production Verification
 
 ```bash
-# Lint with ESLint
+# Run ESLint
 npm run lint
 
-# Compile production bundle
+# Compile production build
 npm run build
 
 # Preview build locally
@@ -225,32 +201,18 @@ npm run preview
 
 ---
 
-## 🏗️ Project Architecture
+## 📦 Platform Submission Guide
 
-```
-random-soundscape-maker/
-├── index.html                   # HTML entry point with YouTube SDK in <head>
-├── src/
-│   ├── components/
-│   │   ├── BeatStudio.tsx       # Core 16-step sequencer, mixer, and Playables UI
-│   │   └── ui/                  # Accessible shadcn/ui components (Radix primitives)
-│   ├── lib/
-│   │   ├── youtubePlayables.ts  # Robust Playables SDK lifecycle, ads & cloud adapter
-│   │   └── utils.ts             # Styling helpers (clsx + tailwind-merge)
-│   ├── types/
-│   │   └── ytgame.d.ts          # Official YouTube Playables SDK TypeScript declarations
-│   ├── App.tsx                  # Root layout, routing, and toast providers
-│   ├── main.tsx                 # React DOM mount
-│   └── index.css                # Dark synthwave theme & Playables UI classes
-├── .github/workflows/
-│   └── verify.yml               # GitHub Actions CI build & verification
-└── package.json                 # Project configuration and dependencies
-```
+- **YouTube Playables**: Ensure `<script src="https://www.youtube.com/game_api/v1"></script>` is in `<head>`. Upload the `dist/` directory or run in the YouTube Playables Test Suite.
+- **Poki**: Include `<script src="https://game-cdn.poki.com/scripts/v2/poki-sdk.js"></script>` when deploying to Poki servers.
+- **CrazyGames**: Include `<script src="https://sdk.crazygames.com/crazygames-sdk-v3.js"></script>`.
+- **Facebook Instant Games**: Include `<script src="https://connect.facebook.net/en_US/fbinstant.7.1.js"></script>`.
+- **Microsoft Store**: Package using PWABuilder with `manifest.json`.
 
 ---
 
-## 📄 License & Author
+## 📄 Author & License
 
-Crafted with ❤️ by **[Rahul Kumar](https://github.com/Rahul08319)**.
+Developed with passion by **[Rahul Kumar](https://github.com/Rahul08319)**.
 
-Open source under the [MIT License](LICENSE).
+Released under the **[MIT License](LICENSE)**.

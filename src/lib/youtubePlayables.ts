@@ -116,12 +116,22 @@ export async function initializePlayables(callbacks: PlayablesCallbacks): Promis
     reportPlayableError(err);
   }
 
-  // 2. Query initial audio state
+  // 2. Query initial audio state safely:
+  // Only honor host muting if running inside the live Playables container.
+  // In local development or standalone web, the mock SDK returns false which must not silence the game.
   try {
-    const isAudioOn = sdk.system.isAudioEnabled();
-    callbacks.onAudioEnabledChange(isAudioOn);
+    if (isInPlayablesEnv() && typeof sdk.system.isAudioEnabled === "function") {
+      const isAudioOn = sdk.system.isAudioEnabled();
+      if (typeof isAudioOn === "boolean") {
+        callbacks.onAudioEnabledChange(isAudioOn);
+      } else {
+        callbacks.onAudioEnabledChange(true);
+      }
+    } else {
+      callbacks.onAudioEnabledChange(true);
+    }
   } catch {
-    reportPlayableWarning("Failed to query initial audio state");
+    callbacks.onAudioEnabledChange(true);
   }
 
   // 3. Register lifecycle and audio change callbacks
