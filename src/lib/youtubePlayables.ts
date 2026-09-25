@@ -198,63 +198,6 @@ export function markPlayableReady(): void {
 }
 
 /**
- * Requests an interstitial ad to be shown at natural pauses (e.g. shuffling or exporting).
- */
-export async function requestPlayableInterstitial(): Promise<boolean> {
-  const sdk = getPlayablesSdk();
-  if (!sdk?.ads?.requestInterstitialAd) {
-    return false;
-  }
-  try {
-    await sdk.ads.requestInterstitialAd();
-    return true;
-  } catch (err) {
-    reportPlayableWarning("Interstitial ad request returned error or was unavailable");
-    return false;
-  }
-}
-
-/**
- * Requests a rewarded ad to be shown for an in-game perk.
- * @param rewardId Unique identifier for the reward (e.g. "reward-vip-sound-pack-1")
- */
-export async function requestPlayableReward(rewardId: string): Promise<boolean> {
-  const sdk = getPlayablesSdk();
-  if (sdk?.IN_PLAYABLES_ENV && sdk?.ads?.requestRewardedAd) {
-    try {
-      return await sdk.ads.requestRewardedAd(rewardId);
-    } catch (err) {
-      reportPlayableWarning(`Rewarded ad failed for ${rewardId}`);
-      return false;
-    }
-  }
-
-  // In local test/standalone mode, simulate rewarded ad success for testing
-  return true;
-}
-
-/**
- * Sends a player's score / soundscape achievement to YouTube.
- */
-export async function sendPlayableScore(value: number): Promise<boolean> {
-  const safeScore = Math.floor(Math.min(value, Number.MAX_SAFE_INTEGER));
-  if (safeScore < 0) return false;
-
-  const sdk = getPlayablesSdk();
-  if (!sdk?.engagement?.sendScore) {
-    return false;
-  }
-
-  try {
-    await sdk.engagement.sendScore({ value: safeScore });
-    return true;
-  } catch (err) {
-    reportPlayableWarning("Failed to send score to YouTube Playables");
-    return false;
-  }
-}
-
-/**
  * Opens content on YouTube (e.g. soundscape demo video or related playable).
  */
 export async function openPlayableContent(

@@ -9,7 +9,6 @@ import {
   Shuffle,
   SlidersHorizontal,
   Star,
-  Trophy,
   Upload,
   Volume2,
   VolumeX,
@@ -55,7 +54,6 @@ type Preset = {
 
 type SavedStudio = Partial<BeatState> & {
   presets?: Preset[];
-  grooveScore?: number;
 };
 
 const getBaseTracks = (): Track[] => [
@@ -176,7 +174,6 @@ export const BeatStudio = () => {
   const [velocity, setVelocity] = useState(0.8);
   const [presets, setPresets] = useState<Preset[]>([]);
   const [presetName, setPresetName] = useState("");
-  const [grooveScore, setGrooveScore] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [isSystemPaused, setIsSystemPaused] = useState(false);
@@ -195,7 +192,6 @@ export const BeatStudio = () => {
   const currentStepRef = useRef(0);
   const stateRef = useRef<BeatState>({ bpm, pattern, tracks, swing, velocity });
   const saveRef = useRef<() => Promise<boolean>>(async () => true);
-  const completedLoopsRef = useRef(0);
   const applyBeatRef = useRef<(next: BeatState) => void>(() => undefined);
   const togglePlaybackRef = useRef<() => Promise<void>>(async () => undefined);
 
@@ -205,13 +201,6 @@ export const BeatStudio = () => {
   useEffect(() => {
     stateRef.current = { bpm, pattern, tracks, swing, velocity };
   }, [bpm, pattern, tracks, swing, velocity]);
-
-  const awardScore = (points: number) => {
-    setGrooveScore((prev) => {
-      const nextScore = Math.min(prev + points, Number.MAX_SAFE_INTEGER);
-      return nextScore;
-    });
-  };
 
   const stopPlayback = () => {
     if (timerRef.current) window.clearTimeout(timerRef.current);
@@ -324,14 +313,6 @@ export const BeatStudio = () => {
       currentStepRef.current = nextStep;
       setCurrentStep(nextStep);
 
-      // Award points on loop completion
-      if (nextStep === 0) {
-        completedLoopsRef.current += 1;
-        if (completedLoopsRef.current % 4 === 0) {
-          awardScore(20);
-        }
-      }
-
       scheduleNextStep();
     }, baseDuration * swingMultiplier);
   };
@@ -358,7 +339,6 @@ export const BeatStudio = () => {
         if (row[currentStepRef.current]) playSound(trackIndex);
       });
       scheduleNextStep();
-      awardScore(5);
     } catch {
       toast.error("Audio could not start in this browser session");
     }
@@ -381,7 +361,6 @@ export const BeatStudio = () => {
     const payload = JSON.stringify({
       ...currentBeat(),
       presets,
-      grooveScore,
     });
     return await platformManager.saveData(payload);
   };
@@ -438,9 +417,6 @@ export const BeatStudio = () => {
       if (rawData) {
         try {
           const parsed = JSON.parse(rawData) as SavedStudio;
-          if (typeof parsed.grooveScore === "number") {
-            setGrooveScore(parsed.grooveScore);
-          }
           if (Array.isArray(parsed.presets)) {
             setPresets(parsed.presets.slice(0, MAX_PRESETS));
           }
@@ -479,7 +455,7 @@ export const BeatStudio = () => {
     if (isReady) {
       void saveRef.current();
     }
-  }, [bpm, pattern, tracks, swing, velocity, presets, grooveScore, isReady]);
+  }, [bpm, pattern, tracks, swing, velocity, presets, isReady]);
 
   // Keyboard navigation & accessibility
   useEffect(() => {
@@ -521,7 +497,6 @@ export const BeatStudio = () => {
               : row
           )
         );
-        awardScore(2);
       }
     };
     window.addEventListener("keydown", onKeyDown);
@@ -539,10 +514,9 @@ export const BeatStudio = () => {
         velocity,
         currentStep,
         selectedStep,
-        grooveScore,
         tracks: tracks.map(({ name, muted, solo, volume }) => ({ name, muted, solo, volume })),
       });
-  }, [bpm, currentStep, isPlaying, grooveScore, selectedStep, swing, tracks, velocity]);
+  }, [bpm, currentStep, isPlaying, selectedStep, swing, tracks, velocity]);
 
   const toggleBeat = (trackIndex: number, stepIndex: number) => {
     if (!canEdit) return;
@@ -552,7 +526,6 @@ export const BeatStudio = () => {
         idx === trackIndex ? row.map((val, step) => (step === stepIndex ? !val : val)) : row
       )
     );
-    awardScore(2);
   };
 
   const shufflePattern = () => {
@@ -567,7 +540,6 @@ export const BeatStudio = () => {
         )
       )
     );
-    awardScore(25);
     toast.success("New soundscape groove generated");
   };
 
@@ -592,13 +564,12 @@ export const BeatStudio = () => {
       ...current,
     ]);
     setPresetName("");
-    awardScore(15);
     toast.success(`Saved “${name}”`);
   };
 
   const exportJson = () => {
     const blob = new Blob(
-      [JSON.stringify({ ...currentBeat(), presets, grooveScore }, null, 2)],
+      [JSON.stringify({ ...currentBeat(), presets }, null, 2)],
       { type: "application/json" }
     );
     const url = URL.createObjectURL(blob);
@@ -619,7 +590,6 @@ export const BeatStudio = () => {
       if (!importedBeat) throw new Error("Invalid soundscape file");
       applyBeat(importedBeat);
       if (Array.isArray(imported.presets)) setPresets(imported.presets.slice(0, MAX_PRESETS));
-      if (typeof imported.grooveScore === "number") setGrooveScore(imported.grooveScore);
       toast.success("Soundscape imported successfully");
     } catch {
       toast.error("That file is not a valid Soundscape export");
@@ -679,10 +649,6 @@ export const BeatStudio = () => {
                 <span>{isAudioEnabled ? "Audio On" : "Muted"}</span>
               </button>
 
-              <div className="score-badge" title="Mastery Score">
-                <Trophy className="w-3.5 h-3.5" />
-                <span>{grooveScore.toLocaleString()} PTS</span>
-              </div>
             </div>
             <p className="studio-shortcuts">Space play · M mute · ←/→ step · 1–8 toggle · F fullscreen</p>
           </div>

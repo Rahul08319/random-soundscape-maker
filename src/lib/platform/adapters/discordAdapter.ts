@@ -18,9 +18,6 @@ export class DiscordActivitiesAdapter implements IPlatformAdapter {
     description: "Discord Voice Channel Activities interactive runtime.",
     features: {
       cloudSave: true,
-      rewardedAds: false,
-      interstitialAds: false,
-      leaderboards: true,
       socialShare: true,
     },
   };
@@ -46,14 +43,6 @@ export class DiscordActivitiesAdapter implements IPlatformAdapter {
     return false;
   }
 
-  async requestInterstitial(): Promise<boolean> {
-    return true;
-  }
-
-  async requestReward(_rewardId: string): Promise<boolean> {
-    return true;
-  }
-
   async loadData(): Promise<string> {
     return typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) || "" : "";
   }
@@ -65,10 +54,6 @@ export class DiscordActivitiesAdapter implements IPlatformAdapter {
     } catch {
       return false;
     }
-  }
-
-  async sendScore(_score: number): Promise<boolean> {
-    return true;
   }
 
   async openContent(_id: string): Promise<boolean> {

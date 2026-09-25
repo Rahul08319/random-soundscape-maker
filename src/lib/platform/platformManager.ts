@@ -135,24 +135,12 @@ class UnifiedPlatformManager {
     return this.activeAdapter.isAudioMuted();
   }
 
-  public async requestInterstitial(): Promise<boolean> {
-    return await this.activeAdapter.requestInterstitial();
-  }
-
-  public async requestReward(rewardId: string): Promise<boolean> {
-    return await this.activeAdapter.requestReward(rewardId);
-  }
-
   public async loadData(): Promise<string> {
     return await this.activeAdapter.loadData();
   }
 
   public async saveData(data: string): Promise<boolean> {
     return await this.activeAdapter.saveData(data);
-  }
-
-  public async sendScore(score: number): Promise<boolean> {
-    return await this.activeAdapter.sendScore(score);
   }
 
   public async openContent(id: string): Promise<boolean> {

@@ -5,22 +5,11 @@ declare global {
     CrazyGames?: {
       SDK?: {
         init: () => Promise<void>;
-        ad: {
-          requestAd: (
-            type: "midgame" | "rewarded",
-            callbacks?: {
-              adStarted?: () => void;
-              adFinished?: () => void;
-              adError?: (err: unknown) => void;
-            }
-          ) => Promise<void>;
-        };
         game: {
           loadingStart: () => void;
           loadingStop: () => void;
           gameplayStart: () => void;
           gameplayStop: () => void;
-          happytime?: () => void;
         };
         data?: {
           getItem: (key: string) => Promise<string | null>;
@@ -43,9 +32,6 @@ export class CrazyGamesAdapter implements IPlatformAdapter {
     description: "Official CrazyGames HTML5 web gaming SDK.",
     features: {
       cloudSave: true,
-      rewardedAds: true,
-      interstitialAds: true,
-      leaderboards: true,
       socialShare: false,
     },
   };
@@ -84,52 +70,6 @@ export class CrazyGamesAdapter implements IPlatformAdapter {
     return false;
   }
 
-  async requestInterstitial(): Promise<boolean> {
-    if (typeof window !== "undefined" && window.CrazyGames?.SDK?.ad) {
-      return new Promise<boolean>((resolve) => {
-        try {
-          window.CrazyGames?.SDK?.game.gameplayStop();
-          window.CrazyGames?.SDK?.ad.requestAd("midgame", {
-            adFinished: () => {
-              window.CrazyGames?.SDK?.game.gameplayStart();
-              resolve(true);
-            },
-            adError: () => {
-              window.CrazyGames?.SDK?.game.gameplayStart();
-              resolve(false);
-            },
-          });
-        } catch {
-          resolve(true);
-        }
-      });
-    }
-    return true;
-  }
-
-  async requestReward(_rewardId: string): Promise<boolean> {
-    if (typeof window !== "undefined" && window.CrazyGames?.SDK?.ad) {
-      return new Promise<boolean>((resolve) => {
-        try {
-          window.CrazyGames?.SDK?.game.gameplayStop();
-          window.CrazyGames?.SDK?.ad.requestAd("rewarded", {
-            adFinished: () => {
-              window.CrazyGames?.SDK?.game.gameplayStart();
-              resolve(true);
-            },
-            adError: () => {
-              window.CrazyGames?.SDK?.game.gameplayStart();
-              resolve(false);
-            },
-          });
-        } catch {
-          resolve(true);
-        }
-      });
-    }
-    return true;
-  }
-
   async loadData(): Promise<string> {
     if (typeof window !== "undefined" && window.CrazyGames?.SDK?.data?.getItem) {
       try {
@@ -157,13 +97,6 @@ export class CrazyGamesAdapter implements IPlatformAdapter {
     } catch {
       return false;
     }
-  }
-
-  async sendScore(_score: number): Promise<boolean> {
-    if (typeof window !== "undefined" && window.CrazyGames?.SDK?.game?.happytime) {
-      window.CrazyGames.SDK.game.happytime();
-    }
-    return true;
   }
 
   async openContent(_id: string): Promise<boolean> {

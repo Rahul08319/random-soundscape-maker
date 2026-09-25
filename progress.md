@@ -13,3 +13,5 @@ Original prompt: Add all applicable YouTube Playables SDK requirements to the li
 2026-09-07: Added an audible starter groove and changed playback to resume the AudioContext before scheduling notes, with a clear message when host audio is disabled.
 
 2026-09-23: Reframed the studio with Apple-inspired calm hierarchy, glass depth, and a native WebGL visualizer that reacts to playback without a third-party rendering dependency. Rewrote the README to document the visualizer, creative tools, and Playables behavior. CI now runs the reliable production-build verification only.
+
+2026-09-25: Merged the visual studio update with the platform bridge, removed ad, rewarded-content, leaderboard, and score-submission paths, and verified the production bundle and local preview response.

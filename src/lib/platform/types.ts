@@ -22,9 +22,6 @@ export interface PlatformMetadata {
   description: string;
   features: {
     cloudSave: boolean;
-    rewardedAds: boolean;
-    interstitialAds: boolean;
-    leaderboards: boolean;
     socialShare: boolean;
   };
 }
@@ -55,20 +52,11 @@ export interface IPlatformAdapter {
   /** Check if audio is currently muted by platform */
   isAudioMuted(): boolean;
 
-  /** Request interstitial ad at natural pauses */
-  requestInterstitial(): Promise<boolean>;
-
-  /** Request rewarded ad for in-game perk */
-  requestReward(rewardId: string): Promise<boolean>;
-
   /** Load saved player data */
   loadData(): Promise<string>;
 
   /** Save serialized player data */
   saveData(data: string): Promise<boolean>;
-
-  /** Transmit score / achievement to leaderboard */
-  sendScore(score: number): Promise<boolean>;
 
   /** Open external content (video or store) */
   openContent(id: string): Promise<boolean>;

@@ -9,9 +9,6 @@ export const GENERIC_METADATA: Record<string, PlatformMetadata> = {
     description: "Y8.com global flash & HTML5 gaming portal.",
     features: {
       cloudSave: true,
-      rewardedAds: true,
-      interstitialAds: true,
-      leaderboards: true,
       socialShare: false,
     },
   },
@@ -20,12 +17,9 @@ export const GENERIC_METADATA: Record<string, PlatformMetadata> = {
     name: "Lagged",
     badge: "Lagged",
     sdkName: "Lagged Game API",
-    description: "Lagged.com web gaming platform and leaderboards.",
+    description: "Lagged.com web gaming platform runtime.",
     features: {
       cloudSave: true,
-      rewardedAds: true,
-      interstitialAds: true,
-      leaderboards: true,
       socialShare: false,
     },
   },
@@ -37,9 +31,6 @@ export const GENERIC_METADATA: Record<string, PlatformMetadata> = {
     description: "Installable Progressive Web App for Microsoft Windows Store.",
     features: {
       cloudSave: true,
-      rewardedAds: false,
-      interstitialAds: false,
-      leaderboards: false,
       socialShare: true,
     },
   },
@@ -51,9 +42,6 @@ export const GENERIC_METADATA: Record<string, PlatformMetadata> = {
     description: "Instant execution runtime on Huawei & Xiaomi mobile OS.",
     features: {
       cloudSave: true,
-      rewardedAds: true,
-      interstitialAds: true,
-      leaderboards: false,
       socialShare: false,
     },
   },
@@ -65,9 +53,6 @@ export const GENERIC_METADATA: Record<string, PlatformMetadata> = {
     description: "Embedded canvas experiences across MSN Gaming and Reddit games.",
     features: {
       cloudSave: true,
-      rewardedAds: false,
-      interstitialAds: false,
-      leaderboards: true,
       socialShare: true,
     },
   },
@@ -79,9 +64,6 @@ export const GENERIC_METADATA: Record<string, PlatformMetadata> = {
     description: "Modern desktop & mobile web browser runtime.",
     features: {
       cloudSave: true,
-      rewardedAds: true,
-      interstitialAds: true,
-      leaderboards: true,
       socialShare: true,
     },
   },
@@ -142,14 +124,6 @@ export class GenericWebAdapter implements IPlatformAdapter {
     return false;
   }
 
-  async requestInterstitial(): Promise<boolean> {
-    return true;
-  }
-
-  async requestReward(_rewardId: string): Promise<boolean> {
-    return true;
-  }
-
   async loadData(): Promise<string> {
     try {
       return window.localStorage.getItem(this.storageKey) || "";
@@ -165,10 +139,6 @@ export class GenericWebAdapter implements IPlatformAdapter {
     } catch {
       return false;
     }
-  }
-
-  async sendScore(_score: number): Promise<boolean> {
-    return true;
   }
 
   async openContent(_id: string): Promise<boolean> {

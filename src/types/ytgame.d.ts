@@ -19,21 +19,6 @@ export declare namespace ytgame {
     constructor(errorType: SdkErrorType, message?: string);
   }
 
-  export namespace ads {
-    /**
-     * Requests an interstitial ad to be shown during natural breakpoints (e.g. level change, shuffle).
-     * Makes no guarantees about whether the ad was shown.
-     */
-    export function requestInterstitialAd(): Promise<void>;
-
-    /**
-     * Requests a rewarded ad to be shown for a claimable in-game reward.
-     * @param rewardId Unique identifier for the claimable reward (no user data).
-     * @returns A promise resolving to true if reward was earned, false otherwise.
-     */
-    export function requestRewardedAd(rewardId: string): Promise<boolean>;
-  }
-
   export namespace engagement {
     export enum ContentType {
       PLAYABLE = "PLAYABLE",
@@ -45,20 +30,11 @@ export declare namespace ytgame {
       contentType?: ContentType;
     }
 
-    export interface Score {
-      /** Integer value <= Number.MAX_SAFE_INTEGER */
-      value: number;
-    }
-
     /**
      * Requests YouTube to open content (video or playable) corresponding to the ID.
      */
     export function openYTContent(content: Content): Promise<void>;
 
-    /**
-     * Sends a player's score to YouTube leaderboard UI.
-     */
-    export function sendScore(score: Score): Promise<void>;
   }
 
   export namespace game {

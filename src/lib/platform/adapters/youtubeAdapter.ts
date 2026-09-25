@@ -6,10 +6,7 @@ import {
   loadPlayableData,
   markPlayableReady,
   openPlayableContent,
-  requestPlayableInterstitial,
-  requestPlayableReward,
   savePlayableData,
-  sendPlayableScore,
 } from "../../youtubePlayables";
 
 export class YouTubePlayablesAdapter implements IPlatformAdapter {
@@ -22,9 +19,6 @@ export class YouTubePlayablesAdapter implements IPlatformAdapter {
     description: "Official Google YouTube Playables web SDK integration.",
     features: {
       cloudSave: true,
-      rewardedAds: true,
-      interstitialAds: true,
-      leaderboards: true,
       socialShare: true,
     },
   };
@@ -66,24 +60,12 @@ export class YouTubePlayablesAdapter implements IPlatformAdapter {
     }
   }
 
-  async requestInterstitial(): Promise<boolean> {
-    return await requestPlayableInterstitial();
-  }
-
-  async requestReward(rewardId: string): Promise<boolean> {
-    return await requestPlayableReward(rewardId);
-  }
-
   async loadData(): Promise<string> {
     return await loadPlayableData();
   }
 
   async saveData(data: string): Promise<boolean> {
     return await savePlayableData(data);
-  }
-
-  async sendScore(score: number): Promise<boolean> {
-    return await sendPlayableScore(score);
   }
 
   async openContent(id: string): Promise<boolean> {

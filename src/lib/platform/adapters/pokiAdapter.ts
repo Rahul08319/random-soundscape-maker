@@ -7,8 +7,6 @@ declare global {
       gameLoadingFinished: () => void;
       gameplayStart: () => void;
       gameplayStop: () => void;
-      commercialBreak: () => Promise<void>;
-      rewardedBreak: () => Promise<boolean>;
       setDebug?: (debug: boolean) => void;
     };
   }
@@ -26,9 +24,6 @@ export class PokiAdapter implements IPlatformAdapter {
     description: "Official Poki web gaming SDK integration.",
     features: {
       cloudSave: true,
-      rewardedAds: true,
-      interstitialAds: true,
-      leaderboards: false,
       socialShare: false,
     },
   };
@@ -67,34 +62,6 @@ export class PokiAdapter implements IPlatformAdapter {
     return false;
   }
 
-  async requestInterstitial(): Promise<boolean> {
-    if (typeof window !== "undefined" && window.PokiSDK) {
-      try {
-        window.PokiSDK.gameplayStop();
-        await window.PokiSDK.commercialBreak();
-        window.PokiSDK.gameplayStart();
-        return true;
-      } catch {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  async requestReward(_rewardId: string): Promise<boolean> {
-    if (typeof window !== "undefined" && window.PokiSDK) {
-      try {
-        window.PokiSDK.gameplayStop();
-        const success = await window.PokiSDK.rewardedBreak();
-        window.PokiSDK.gameplayStart();
-        return Boolean(success);
-      } catch {
-        return false;
-      }
-    }
-    return true;
-  }
-
   async loadData(): Promise<string> {
     return typeof window !== "undefined" ? window.localStorage.getItem(STORAGE_KEY) || "" : "";
   }
@@ -106,10 +73,6 @@ export class PokiAdapter implements IPlatformAdapter {
     } catch {
       return false;
     }
-  }
-
-  async sendScore(_score: number): Promise<boolean> {
-    return true;
   }
 
   async openContent(_id: string): Promise<boolean> {

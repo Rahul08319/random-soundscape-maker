@@ -13,17 +13,6 @@ declare global {
         getDataAsync: (keys: string[]) => Promise<Record<string, string>>;
         setDataAsync: (data: Record<string, string>) => Promise<void>;
       };
-      getInterstitialAdAsync?: (placement: string) => Promise<{
-        loadAsync: () => Promise<void>;
-        showAsync: () => Promise<void>;
-      }>;
-      getRewardedVideoAsync?: (placement: string) => Promise<{
-        loadAsync: () => Promise<void>;
-        showAsync: () => Promise<void>;
-      }>;
-      getLeaderboardAsync?: (name: string) => Promise<{
-        setScoreAsync: (score: number) => Promise<unknown>;
-      }>;
     };
   }
 }
@@ -40,9 +29,6 @@ export class FacebookInstantAdapter implements IPlatformAdapter {
     description: "Meta Facebook Instant Games native web runtime.",
     features: {
       cloudSave: true,
-      rewardedAds: true,
-      interstitialAds: true,
-      leaderboards: true,
       socialShare: true,
     },
   };
@@ -82,34 +68,6 @@ export class FacebookInstantAdapter implements IPlatformAdapter {
     return false;
   }
 
-  async requestInterstitial(): Promise<boolean> {
-    if (typeof window !== "undefined" && window.FBInstant?.getInterstitialAdAsync) {
-      try {
-        const ad = await window.FBInstant.getInterstitialAdAsync("INTERSTITIAL_PLACEMENT");
-        await ad.loadAsync();
-        await ad.showAsync();
-        return true;
-      } catch {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  async requestReward(_rewardId: string): Promise<boolean> {
-    if (typeof window !== "undefined" && window.FBInstant?.getRewardedVideoAsync) {
-      try {
-        const ad = await window.FBInstant.getRewardedVideoAsync("REWARDED_PLACEMENT");
-        await ad.loadAsync();
-        await ad.showAsync();
-        return true;
-      } catch {
-        return false;
-      }
-    }
-    return true;
-  }
-
   async loadData(): Promise<string> {
     if (typeof window !== "undefined" && window.FBInstant?.player?.getDataAsync) {
       try {
@@ -137,19 +95,6 @@ export class FacebookInstantAdapter implements IPlatformAdapter {
     } catch {
       return false;
     }
-  }
-
-  async sendScore(score: number): Promise<boolean> {
-    if (typeof window !== "undefined" && window.FBInstant?.getLeaderboardAsync) {
-      try {
-        const board = await window.FBInstant.getLeaderboardAsync("groove_mastery");
-        await board.setScoreAsync(score);
-        return true;
-      } catch {
-        return false;
-      }
-    }
-    return true;
   }
 
   async openContent(_id: string): Promise<boolean> {

@@ -14,21 +14,6 @@ interface YandexSDK {
       ready: () => void;
     };
   };
-  adv: {
-    showFullscreenAdv: (opts?: {
-      callbacks?: {
-        onClose?: (wasShown: boolean) => void;
-        onError?: (err: unknown) => void;
-      };
-    }) => void;
-    showRewardedVideo: (opts?: {
-      callbacks?: {
-        onRewarded?: () => void;
-        onClose?: () => void;
-        onError?: (err: unknown) => void;
-      };
-    }) => void;
-  };
   getPlayer?: () => Promise<{
     getData: (keys: string[]) => Promise<Record<string, string>>;
     setData: (data: Record<string, string>) => Promise<void>;
@@ -52,9 +37,6 @@ export class YandexGamesAdapter implements IPlatformAdapter {
     description: "Yandex Games HTML5 platform SDK.",
     features: {
       cloudSave: true,
-      rewardedAds: true,
-      interstitialAds: true,
-      leaderboards: true,
       socialShare: true,
     },
   };
@@ -93,34 +75,6 @@ export class YandexGamesAdapter implements IPlatformAdapter {
     return false;
   }
 
-  async requestInterstitial(): Promise<boolean> {
-    if (!this.ysdk) return true;
-    return new Promise<boolean>((resolve) => {
-      this.ysdk?.adv.showFullscreenAdv({
-        callbacks: {
-          onClose: () => resolve(true),
-          onError: () => resolve(false),
-        },
-      });
-    });
-  }
-
-  async requestReward(_rewardId: string): Promise<boolean> {
-    if (!this.ysdk) return true;
-    return new Promise<boolean>((resolve) => {
-      let rewarded = false;
-      this.ysdk?.adv.showRewardedVideo({
-        callbacks: {
-          onRewarded: () => {
-            rewarded = true;
-          },
-          onClose: () => resolve(rewarded),
-          onError: () => resolve(false),
-        },
-      });
-    });
-  }
-
   async loadData(): Promise<string> {
     if (this.ysdk?.getPlayer) {
       try {
@@ -150,10 +104,6 @@ export class YandexGamesAdapter implements IPlatformAdapter {
     } catch {
       return false;
     }
-  }
-
-  async sendScore(_score: number): Promise<boolean> {
-    return true;
   }
 
   async openContent(_id: string): Promise<boolean> {
