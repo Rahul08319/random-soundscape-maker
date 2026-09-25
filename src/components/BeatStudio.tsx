@@ -8,7 +8,6 @@ import {
   Share2,
   Shuffle,
   SlidersHorizontal,
-  Sparkles,
   Star,
   Trophy,
   Upload,
@@ -25,12 +24,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { SoundscapeVisualizer } from "./SoundscapeVisualizer";
+import { BeatVisualizer } from "./BeatVisualizer";
 import { platformManager, SUPPORTED_PLATFORMS, type PlatformId } from "@/lib/platform";
 
 const STEPS = 16;
 const MAX_PRESETS = 24;
-const REWARD_VIP_ID = "reward-vip-sound-pack-1";
 
 type Track = {
   name: string;
@@ -58,7 +56,6 @@ type Preset = {
 type SavedStudio = Partial<BeatState> & {
   presets?: Preset[];
   grooveScore?: number;
-  isVipUnlocked?: boolean;
 };
 
 const getBaseTracks = (): Track[] => [
@@ -70,16 +67,9 @@ const getBaseTracks = (): Track[] => [
   { name: "Shaker", color: "hsl(15 90% 65%)", volume: 0.45, muted: false, solo: false },
 ];
 
-const getVipTracks = (): Track[] => [
-  { name: "808 Sub", color: "hsl(300 90% 55%)", volume: 0.85, muted: false, solo: false },
-  { name: "Synth Lead", color: "hsl(215 90% 60%)", volume: 0.7, muted: false, solo: false },
-];
+const createTracks = (): Track[] => getBaseTracks();
 
-const createTracks = (isVipUnlocked = false): Track[] => {
-  return isVipUnlocked ? [...getBaseTracks(), ...getVipTracks()] : getBaseTracks();
-};
-
-const emptyPattern = (trackCount = createTracks(false).length) =>
+const emptyPattern = (trackCount = createTracks().length) =>
   Array.from({ length: trackCount }, () => Array(STEPS).fill(false));
 
 const starterPattern = (trackCount = 6) => {
@@ -121,10 +111,10 @@ const cloneBeat = (beat: BeatState): BeatState => ({
   tracks: beat.tracks.map((track) => ({ ...track })),
 });
 
-function validBeat(value: unknown, isVipUnlocked = false): BeatState | null {
+function validBeat(value: unknown): BeatState | null {
   if (!value || typeof value !== "object") return null;
   const candidate = value as SavedStudio;
-  const defaults = createTracks(isVipUnlocked);
+  const defaults = createTracks();
   const targetCount = defaults.length;
 
   let pattern: boolean[][] | null = null;
@@ -168,11 +158,11 @@ function validBeat(value: unknown, isVipUnlocked = false): BeatState | null {
   };
 }
 
-function decodeShare(isVipUnlocked = false): BeatState | null {
+function decodeShare(): BeatState | null {
   const encoded = new URLSearchParams(window.location.hash.slice(1)).get("beat");
   if (!encoded) return null;
   try {
-    return validBeat(JSON.parse(decodeURIComponent(escape(window.atob(encoded)))), isVipUnlocked);
+    return validBeat(JSON.parse(decodeURIComponent(escape(window.atob(encoded)))));
   } catch {
     return null;
   }
@@ -180,8 +170,7 @@ function decodeShare(isVipUnlocked = false): BeatState | null {
 
 export const BeatStudio = () => {
   const [bpm, setBpm] = useState(120);
-  const [isVipUnlocked, setIsVipUnlocked] = useState(false);
-  const [tracks, setTracks] = useState<Track[]>(() => createTracks(false));
+  const [tracks, setTracks] = useState<Track[]>(() => createTracks());
   const [pattern, setPattern] = useState<boolean[][]>(() => starterPattern(6));
   const [swing, setSwing] = useState(0);
   const [velocity, setVelocity] = useState(0.8);
@@ -206,7 +195,6 @@ export const BeatStudio = () => {
   const currentStepRef = useRef(0);
   const stateRef = useRef<BeatState>({ bpm, pattern, tracks, swing, velocity });
   const saveRef = useRef<() => Promise<boolean>>(async () => true);
-  const lastAdTimeRef = useRef(0);
   const completedLoopsRef = useRef(0);
   const applyBeatRef = useRef<(next: BeatState) => void>(() => undefined);
   const togglePlaybackRef = useRef<() => Promise<void>>(async () => undefined);
@@ -221,7 +209,6 @@ export const BeatStudio = () => {
   const awardScore = (points: number) => {
     setGrooveScore((prev) => {
       const nextScore = Math.min(prev + points, Number.MAX_SAFE_INTEGER);
-      void platformManager.sendScore(nextScore);
       return nextScore;
     });
   };
@@ -395,7 +382,6 @@ export const BeatStudio = () => {
       ...currentBeat(),
       presets,
       grooveScore,
-      isVipUnlocked,
     });
     return await platformManager.saveData(payload);
   };
@@ -449,29 +435,22 @@ export const BeatStudio = () => {
       // Load saved state
       const rawData = await platformManager.loadData();
       let loadedBeat: BeatState | null = null;
-      let vipUnlocked = false;
-
       if (rawData) {
         try {
           const parsed = JSON.parse(rawData) as SavedStudio;
-          vipUnlocked = Boolean(parsed.isVipUnlocked);
-          if (vipUnlocked) {
-            setIsVipUnlocked(true);
-            setTracks(createTracks(true));
-          }
           if (typeof parsed.grooveScore === "number") {
             setGrooveScore(parsed.grooveScore);
           }
           if (Array.isArray(parsed.presets)) {
             setPresets(parsed.presets.slice(0, MAX_PRESETS));
           }
-          loadedBeat = validBeat(parsed, vipUnlocked);
+          loadedBeat = validBeat(parsed);
         } catch {
           /* parse fallback */
         }
       }
 
-      const shared = decodeShare(vipUnlocked);
+      const shared = decodeShare();
       if (mounted && (shared || loadedBeat)) {
         applyBeatRef.current(shared || loadedBeat!);
       }
@@ -500,7 +479,7 @@ export const BeatStudio = () => {
     if (isReady) {
       void saveRef.current();
     }
-  }, [bpm, pattern, tracks, swing, velocity, presets, grooveScore, isVipUnlocked, isReady]);
+  }, [bpm, pattern, tracks, swing, velocity, presets, grooveScore, isReady]);
 
   // Keyboard navigation & accessibility
   useEffect(() => {
@@ -561,10 +540,9 @@ export const BeatStudio = () => {
         currentStep,
         selectedStep,
         grooveScore,
-        isVipUnlocked,
         tracks: tracks.map(({ name, muted, solo, volume }) => ({ name, muted, solo, volume })),
       });
-  }, [bpm, currentStep, isPlaying, isVipUnlocked, grooveScore, selectedStep, swing, tracks, velocity]);
+  }, [bpm, currentStep, isPlaying, grooveScore, selectedStep, swing, tracks, velocity]);
 
   const toggleBeat = (trackIndex: number, stepIndex: number) => {
     if (!canEdit) return;
@@ -577,15 +555,8 @@ export const BeatStudio = () => {
     awardScore(2);
   };
 
-  const shufflePattern = async () => {
+  const shufflePattern = () => {
     if (!canEdit) return;
-
-    // Trigger platform interstitial ad on natural breakpoint (with 45s cooldown)
-    const now = Date.now();
-    if (now - lastAdTimeRef.current > 45000) {
-      lastAdTimeRef.current = now;
-      await platformManager.requestInterstitial();
-    }
 
     setPattern(
       tracks.map((_, trackIndex) =>
@@ -598,31 +569,6 @@ export const BeatStudio = () => {
     );
     awardScore(25);
     toast.success("New soundscape groove generated");
-  };
-
-  const handleUnlockVipPack = async () => {
-    if (isVipUnlocked) {
-      toast.info("VIP Neon Sound Pack is already active!");
-      return;
-    }
-
-    toast.loading("Preparing rewarded ad...");
-    const rewarded = await platformManager.requestReward(REWARD_VIP_ID);
-    toast.dismiss();
-
-    if (rewarded) {
-      setIsVipUnlocked(true);
-      const updatedTracks = createTracks(true);
-      setTracks(updatedTracks);
-      setPattern((prev) => {
-        if (prev.length >= updatedTracks.length) return prev;
-        return [...prev, ...emptyPattern(updatedTracks.length - prev.length)];
-      });
-      awardScore(100);
-      toast.success("VIP Sound Pack Unlocked! 808 Sub and Synth Lead are ready.");
-    } else {
-      toast.error("Rewarded ad could not be displayed at this time.");
-    }
   };
 
   const handleSelectPlatform = async (id: PlatformId) => {
@@ -650,15 +596,9 @@ export const BeatStudio = () => {
     toast.success(`Saved “${name}”`);
   };
 
-  const exportJson = async () => {
-    const now = Date.now();
-    if (now - lastAdTimeRef.current > 60000) {
-      lastAdTimeRef.current = now;
-      await platformManager.requestInterstitial();
-    }
-
+  const exportJson = () => {
     const blob = new Blob(
-      [JSON.stringify({ ...currentBeat(), presets, grooveScore, isVipUnlocked }, null, 2)],
+      [JSON.stringify({ ...currentBeat(), presets, grooveScore }, null, 2)],
       { type: "application/json" }
     );
     const url = URL.createObjectURL(blob);
@@ -675,11 +615,7 @@ export const BeatStudio = () => {
     if (!file) return;
     try {
       const imported = JSON.parse(await file.text()) as SavedStudio;
-      if (imported.isVipUnlocked && !isVipUnlocked) {
-        setIsVipUnlocked(true);
-        setTracks(createTracks(true));
-      }
-      const importedBeat = validBeat(imported, Boolean(imported.isVipUnlocked || isVipUnlocked));
+      const importedBeat = validBeat(imported);
       if (!importedBeat) throw new Error("Invalid soundscape file");
       applyBeat(importedBeat);
       if (Array.isArray(imported.presets)) setPresets(imported.presets.slice(0, MAX_PRESETS));
@@ -754,12 +690,7 @@ export const BeatStudio = () => {
 
         {/* Real-time Apple Fluid Visualizer */}
         <div className="px-6 py-2 bg-black/20">
-          <SoundscapeVisualizer
-            isPlaying={isPlaying}
-            bpm={bpm}
-            currentStep={currentStep}
-            isAudioEnabled={isAudioEnabled}
-          />
+          <BeatVisualizer isPlaying={isPlaying} currentStep={currentStep} velocity={velocity} />
         </div>
 
         {/* Playback & Parameters Bar */}
@@ -817,18 +748,6 @@ export const BeatStudio = () => {
           </div>
 
           <div className="studio-actions">
-            {/* Rewarded Ad VIP Pack Button */}
-            <Button
-              className={`reward-btn ${isVipUnlocked ? "is-unlocked" : ""}`}
-              onClick={handleUnlockVipPack}
-              disabled={!canEdit}
-              variant="outline"
-              size="sm"
-            >
-              <Sparkles className="w-3.5 h-3.5 mr-1" />
-              {isVipUnlocked ? "VIP Pack Active" : "Unlock VIP Pack"}
-            </Button>
-
             <Button
               onClick={() => {
                 setPattern(emptyPattern(tracks.length));
@@ -1068,61 +987,18 @@ export const BeatStudio = () => {
             </div>
           </div>
 
-          <div className="space-y-2 mt-4">
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Verification & Ad Testing
-            </p>
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  toast.loading("Testing Interstitial Ad...");
-                  const ok = await platformManager.requestInterstitial();
-                  toast.dismiss();
-                  toast.success(ok ? "Interstitial completed" : "Interstitial handled");
-                }}
-              >
-                Test Interstitial Ad
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  toast.loading("Testing Rewarded Ad...");
-                  const ok = await platformManager.requestReward(REWARD_VIP_ID);
-                  toast.dismiss();
-                  toast.success(ok ? "Rewarded Ad success" : "Rewarded Ad not completed");
-                }}
-              >
-                Test Rewarded Ad
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={async () => {
-                  const newScore = grooveScore + 50;
-                  setGrooveScore(newScore);
-                  await platformManager.sendScore(newScore);
-                  toast.success(`Sent score: ${newScore}`);
-                }}
-              >
-                Test Send Score (+50)
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setIsAudioEnabled((prev) => !prev);
-                  toast.success(isAudioEnabled ? "Audio muted" : "Audio unmuted");
-                }}
-              >
-                Toggle Master Audio
-              </Button>
-            </div>
-          </div>
+          <p className="mt-4 text-xs text-muted-foreground">This editor has no ads, rewarded content, purchases, or score submission.</p>
         </DialogContent>
       </Dialog>
     </main>
   );
+/*
+  return <main className="studio-shell"><div className="studio-frame">
+    <header className="studio-header"><div className="studio-title"><p className="studio-kicker">RANDOM SOUNDSCAPE MAKER</p><h1 className="studio-wordmark">BEAT <span>STUDIO</span></h1><p className="studio-description">A calm place to sketch a rhythm, shape its movement, and keep the spark.</p><p className="studio-shortcuts">Space play · ←/→ select · 1–6 toggle · F fullscreen</p></div><div className="studio-visualizer-wrap"><BeatVisualizer isPlaying={isPlaying} currentStep={currentStep} velocity={velocity} /><span>{isPlaying ? "Live signal" : "Ready to play"}</span></div></header>
+    <section className="studio-console" aria-label="Playback controls"><Button className="studio-play" onClick={togglePlayback} disabled={!canEdit} size="lg">{isPlaying ? <Pause /> : <Play fill="currentColor" />}<span>{isPlaying ? "Pause" : "Play"}</span></Button><div className="studio-parameters"><label><span>BPM <b>{bpm}</b></span><Slider value={[bpm]} onValueChange={([value]) => setBpm(value)} disabled={!canEdit} min={60} max={200} step={1} /></label><label><span>Swing <b>{swing}%</b></span><Slider value={[swing]} onValueChange={([value]) => setSwing(value)} disabled={!canEdit} min={0} max={50} step={1} /></label><label><span>Velocity <b>{Math.round(velocity * 100)}%</b></span><Slider value={[velocity]} onValueChange={([value]) => setVelocity(value)} disabled={!canEdit} min={0.1} max={1} step={0.05} /></label></div><div className="studio-actions"><Button onClick={() => { setPattern(emptyPattern(tracks.length)); stopPlayback(); }} disabled={!canEdit} variant="ghost">Clear</Button><Button onClick={shufflePattern} disabled={!canEdit} variant="ghost"><Shuffle />Shuffle</Button><Button onClick={shareBeat} disabled={!canEdit} variant="ghost"><Share2 />Share</Button><Button onClick={exportJson} disabled={!canEdit} variant="ghost"><FileDown />Export</Button><Button onClick={() => importRef.current?.click()} disabled={!canEdit} variant="ghost"><Upload />Import</Button><input ref={importRef} className="hidden" type="file" accept="application/json,.json" onChange={importJson} /></div></section>
+    <section className="preset-strip"><div className="preset-strip-label"><Star /> <span>PRESETS</span></div><div className="preset-strip-content"><input value={presetName} onChange={(event) => setPresetName(event.target.value)} disabled={!canEdit} maxLength={32} placeholder="Name this beat…" /><Button onClick={savePreset} disabled={!canEdit} variant="ghost"><Save /> Save</Button>{presets.map((preset) => <div className="preset-chip" key={preset.id}><button onClick={() => applyBeat(preset.beat)} disabled={!canEdit}>{preset.name}</button><button aria-label={`Favorite ${preset.name}`} onClick={() => setPresets((items) => items.map((item) => item.id === preset.id ? { ...item, favorite: !item.favorite } : item))} disabled={!canEdit}><Star className={preset.favorite ? "is-favorite" : ""} /></button></div>)}</div></section>
+    <section className="sequencer-surface"><div className="section-heading"><div><p>16-STEP SEQUENCER</p><h2>Build a loop with a little glow.</h2></div><SlidersHorizontal /></div><div className="step-numbers" aria-hidden="true">{Array.from({ length: STEPS }, (_, index) => <span key={index}>{String(index + 1).padStart(2, "0")}</span>)}</div>{tracks.map((track, trackIndex) => <section key={track.name} className="track-lane"><div className="track-label" style={{ "--track": track.color } as CSSProperties}><span>{track.name}</span><small>{track.muted ? "MUTED" : track.solo ? "SOLO" : "READY"}</small></div><div className="step-grid">{pattern[trackIndex].map((enabled, stepIndex) => <button key={stepIndex} onClick={() => toggleBeat(trackIndex, stepIndex)} disabled={!canEdit} aria-label={`${track.name}, step ${stepIndex + 1}`} className={`step-cell ${enabled ? "is-active" : ""} ${currentStep === stepIndex && isPlaying ? "is-current" : ""} ${selectedStep === stepIndex ? "is-selected" : ""}`} style={{ "--track": track.color } as CSSProperties} />)}</div></section>)}</section>
+    <section className="mixer-surface"><div className="section-heading"><div><p>MIXER</p><h2>Shape every voice.</h2></div></div><div className="mixer-grid">{tracks.map((track, index) => <article className="mix-channel" key={track.name} style={{ "--track": track.color } as CSSProperties}><div><span>{track.name}</span><b>{Math.round(track.volume * 100)}%</b></div><Slider value={[track.volume]} onValueChange={([value]) => setTracks((items) => items.map((item, itemIndex) => itemIndex === index ? { ...item, volume: value } : item))} disabled={!canEdit} min={0} max={1} step={0.05} /><div className="mix-actions"><Button aria-label={`Mute ${track.name}`} onClick={() => setTracks((items) => items.map((item, itemIndex) => itemIndex === index ? { ...item, muted: !item.muted } : item))} disabled={!canEdit} size="icon" variant="ghost">{track.muted ? <VolumeX /> : <Volume2 />}</Button><Button onClick={() => setTracks((items) => items.map((item, itemIndex) => itemIndex === index ? { ...item, solo: !item.solo } : item))} disabled={!canEdit} variant="ghost" className={track.solo ? "is-solo" : ""}>Solo</Button></div></article>)}</div></section>
+  </div></main>;
+*/
 };

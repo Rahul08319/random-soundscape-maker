@@ -70,13 +70,18 @@ All colors MUST be HSL.
 }
 
 @layer components {
-  .studio-shell { min-height: 100vh; padding: clamp(1rem, 3vw, 3.5rem); }
-  .studio-frame { max-width: 1400px; margin: 0 auto; border: 1px solid hsl(var(--border)); background: hsl(232 38% 5% / .88); box-shadow: 0 30px 90px hsl(232 80% 1% / .6), inset 0 1px hsl(0 0% 100% / .04); }
-  .studio-header { display: flex; align-items: end; justify-content: space-between; gap: 1rem; padding: clamp(1.25rem, 3vw, 2.25rem); border-bottom: 1px solid hsl(var(--border)); }
+  .studio-shell { min-height: 100vh; padding: clamp(1rem, 3vw, 3.5rem); background: radial-gradient(circle at 80% 4%, hsl(190 96% 60% / .13), transparent 25rem), hsl(var(--background)); }
+  .studio-frame { max-width: 1400px; margin: 0 auto; overflow: hidden; border: 1px solid hsl(0 0% 100% / .12); border-radius: 1.75rem; background: hsl(232 38% 5% / .88); box-shadow: 0 30px 90px hsl(232 80% 1% / .6), inset 0 1px hsl(0 0% 100% / .08); backdrop-filter: blur(24px); }
+  .studio-header { display: flex; align-items: center; justify-content: space-between; gap: 2rem; padding: clamp(1.5rem, 4vw, 3.5rem); border-bottom: 1px solid hsl(var(--border)); }
+  .studio-title { max-width: 42rem; }
   .studio-kicker, .section-heading p { margin: 0; color: hsl(var(--secondary)); font-size: .66rem; font-weight: 800; letter-spacing: .2em; }
   .studio-wordmark { margin: .3rem 0 0; color: hsl(var(--foreground)); font-size: clamp(2rem, 5vw, 4.4rem); font-style: italic; font-weight: 900; letter-spacing: -.08em; line-height: .8; }
   .studio-wordmark span { color: hsl(var(--primary)); text-shadow: 0 0 28px hsl(var(--primary) / .55); }
-  .studio-shortcuts { margin: 0; color: hsl(var(--muted-foreground)); font-size: .7rem; letter-spacing: .06em; text-align: right; }
+  .studio-description { max-width: 30rem; margin: 1.1rem 0; color: hsl(215 20% 76%); font-size: clamp(.9rem, 1.5vw, 1.05rem); letter-spacing: -.01em; line-height: 1.5; }
+  .studio-shortcuts { margin: 0; color: hsl(var(--muted-foreground)); font-size: .7rem; letter-spacing: .06em; }
+  .studio-visualizer-wrap { display: grid; width: min(33vw, 22rem); min-width: 15rem; justify-items: center; gap: .25rem; color: hsl(var(--secondary)); font-size: .63rem; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
+  .beat-visualizer { width: 100%; aspect-ratio: 1.65; overflow: hidden; border: 1px solid hsl(0 0% 100% / .1); border-radius: 1.25rem; background: radial-gradient(circle at 50% 52%, hsl(272 92% 66% / .24), transparent 35%), hsl(231 38% 7%); box-shadow: inset 0 1px hsl(0 0% 100% / .08), 0 24px 55px hsl(232 80% 1% / .35); }
+  .beat-visualizer canvas { width: 100%; height: 100%; display: block; }
   .studio-console { display: grid; grid-template-columns: auto minmax(260px, 1fr) auto; align-items: center; gap: 1rem; padding: 1rem clamp(1.25rem, 3vw, 2.25rem); border-bottom: 1px solid hsl(var(--border)); background: hsl(232 30% 7% / .55); }
   .studio-play { min-width: 7.5rem; height: 3.1rem; border: 1px solid hsl(var(--primary) / .8) !important; background: hsl(var(--primary)) !important; color: hsl(232 39% 4%) !important; box-shadow: 0 0 25px hsl(var(--primary) / .38); font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
   .studio-play svg { width: 1rem; }
@@ -124,6 +129,8 @@ All colors MUST be HSL.
   .apple-header { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: clamp(1.25rem, 3vw, 2.25rem); border-bottom: 1px solid hsl(var(--border)); backdrop-filter: blur(28px) saturate(190%); background: hsl(232 35% 6% / 0.7); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12); }
   .apple-visualizer-wrap { width: 100%; height: 38px; border-radius: 12px; overflow: hidden; background: hsl(232 30% 4% / 0.6); border: 1px solid hsl(var(--border) / 0.7); box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4); margin: 0.5rem 0; }
   .apple-visualizer-canvas { width: 100%; height: 100%; display: block; }
+  .beat-visualizer { width: 100%; height: 76px; overflow: hidden; border-radius: 12px; background: radial-gradient(circle at 50% 50%, hsl(272 92% 66% / .22), transparent 48%), hsl(232 30% 4% / .7); border: 1px solid hsl(var(--border) / .7); box-shadow: inset 0 2px 8px hsl(0 0% 0% / .4); }
+  .beat-visualizer canvas { display: block; width: 100%; height: 100%; }
   .apple-pill { display: inline-flex; align-items: center; gap: 0.45rem; padding: 0.35rem 0.75rem; border-radius: 9999px; border: 1px solid hsl(var(--border)); background: hsl(232 30% 9% / 0.8); backdrop-filter: blur(16px); font-size: 0.7rem; font-weight: 700; color: hsl(var(--foreground)); transition: all 0.15s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; }
   .apple-pill:hover { border-color: hsl(var(--primary)); background: hsl(232 30% 14%); transform: translateY(-1px); }
   .apple-pill:active { transform: scale(0.96); }

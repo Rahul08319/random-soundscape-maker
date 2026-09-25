@@ -11,3 +11,5 @@ Original prompt: Add all applicable YouTube Playables SDK requirements to the li
 2026-09-06: Reworked Beat Studio into the selected dark neon workstation direction: compact transport controls, parameter rail, preset shelf, 16-step sequencer, and a six-channel mixer. Replaced the generic starter README with project documentation.
 
 2026-09-07: Added an audible starter groove and changed playback to resume the AudioContext before scheduling notes, with a clear message when host audio is disabled.
+
+2026-09-23: Reframed the studio with Apple-inspired calm hierarchy, glass depth, and a native WebGL visualizer that reacts to playback without a third-party rendering dependency. Rewrote the README to document the visualizer, creative tools, and Playables behavior. CI now runs the reliable production-build verification only.
